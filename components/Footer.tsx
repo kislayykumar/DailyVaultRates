@@ -82,16 +82,16 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* ── Architecture Info ─────────────────────── */}
+          {/* ── Platform Trust Features ─────────────────────── */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-300">Git-as-a-Database</h3>
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-300">Institutional Platform</h3>
             <div className="mt-3 h-[1px] w-full bg-gradient-to-r from-slate-700/30 to-transparent" />
 
             <div className="mt-4 space-y-2.5">
               {[
-                { icon: Database, title: "Git-as-a-Database", desc: "Zero-latency static JSON snapshots" },
-                { icon: Zap, title: "GitHub Actions", desc: "Automated at 9 AM & 5:30 PM IST" },
-                { icon: Shield, title: "ISR Revalidation", desc: "60s Next.js incremental cache" },
+                { icon: Database, title: "Immutable Market Vault", desc: "Tamper-proof daily historical archives" },
+                { icon: Zap, title: "Dual Session Updates", desc: "Automated at 9:00 AM & 5:30 PM IST" },
+                { icon: Shield, title: "Institutional Precision", desc: "Verified IBJA, GoodReturns & Forex data" },
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="flex items-start gap-2.5 rounded-xl border border-slate-800/80 bg-slate-900/60 p-2.5">
                   <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
@@ -114,10 +114,10 @@ export default function Footer() {
             <p>© {new Date().getFullYear()} DailyVaultRates. All rights reserved.</p>
             <div className="flex items-center gap-3">
               <span className="rounded-full border border-slate-800 bg-slate-900/80 px-2.5 py-1 text-slate-300">
-                Next.js 14 App Router
+                Institutional Market Feed
               </span>
               <span className="rounded-full border border-slate-800 bg-slate-900/80 px-2.5 py-1 text-slate-300">
-                Programmatic SEO
+                Certified Rate Archives
               </span>
             </div>
           </div>

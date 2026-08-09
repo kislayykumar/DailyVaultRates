@@ -47,7 +47,7 @@ export default function Navbar() {
               </span>
             </div>
             <p className="text-[11px] font-medium text-slate-400 tracking-wide">
-              Institutional Spot Metal &amp; Forex Archive
+              Global Spot Rates &amp; Market Intelligence
             </p>
           </div>
         </Link>

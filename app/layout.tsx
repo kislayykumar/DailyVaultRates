@@ -73,7 +73,7 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
       </head>
-      <body className="flex min-h-screen flex-col text-slate-100 antialiased selection:bg-amber-500/25 selection:text-amber-200" style={{ background: "#07091a", fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+      <body className="flex min-h-screen flex-col text-slate-100 antialiased selection:bg-amber-500/25 selection:text-amber-200" style={{ background: "#070A12", fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>
