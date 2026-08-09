@@ -1,16 +1,14 @@
-import { getLatestRates, getPreviousDayRates, getAllAvailableDates } from "@/lib/dataFetcher";
+import { getLatestRates, getPreviousDayRates, getAllAvailableDates, getHistoricalDataHistory } from "@/lib/dataFetcher";
 import DashboardView from "@/components/DashboardView";
 import { Vault, AlertTriangle } from "lucide-react";
 
 // Revalidate every 60 seconds so Vercel picks up the new JSON
-// committed by the GitHub Action without needing a manual redeploy.
-// ISR (Incremental Static Regeneration): serves cached page instantly,
-// regenerates in background when 60s have elapsed.
 export const revalidate = 60;
 
 export default async function HomePage() {
   const latestResult = await getLatestRates();
   const allAvailableDates = await getAllAvailableDates();
+  const historicalHistory = await getHistoricalDataHistory();
 
   if (!latestResult) {
     return (
@@ -53,8 +51,10 @@ export default async function HomePage() {
         currentData={currentData}
         previousData={previousData}
         allAvailableDates={allAvailableDates}
+        historicalHistory={historicalHistory}
         title="Live Spot Rates & Daily Market Vault"
       />
     </>
   );
 }
+

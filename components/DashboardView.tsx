@@ -12,19 +12,21 @@ import {
   Sparkles,
   ChevronRight,
   Globe,
-  Award,
-  ShieldCheck,
+  LineChart as LineChartIcon,
+  Info,
 } from "lucide-react";
 import { DailyRateData, calculateTrend, MetalRate } from "@/lib/types";
 import { useCurrency } from "@/context/CurrencyContext";
 import PdfDownloadButton from "@/components/PdfDownloadButton";
 import AdBanner from "@/components/AdBanner";
+import TrendChartModal from "@/components/TrendChartModal";
 import Link from "next/link";
 
 interface DashboardViewProps {
   currentData: DailyRateData;
   previousData: DailyRateData | null;
   allAvailableDates: { year: string; month: string; day: string }[];
+  historicalHistory?: DailyRateData[];
   title?: string;
   isArchivePage?: boolean;
 }
@@ -33,12 +35,22 @@ export default function DashboardView({
   currentData,
   previousData,
   allAvailableDates,
+  historicalHistory = [],
   title = "Institutional Spot Rates & Market Vault",
   isArchivePage = false,
 }: DashboardViewProps) {
   const { currencyMode } = useCurrency();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<"all" | "metals" | "forex">("all");
+
+  // State for interactive Trend Chart Modal
+  const [chartModalAsset, setChartModalAsset] = useState<{
+    type: "metal" | "forex";
+    id: string;
+    name: string;
+    symbol: string;
+    subtext?: string;
+  } | null>(null);
 
   const inrCurrency = currentData.currencies.find((c) => c.code === "INR");
   const usdToInr = inrCurrency?.usdToRate || 83.88;
@@ -114,22 +126,13 @@ export default function DashboardView({
   const eurPrevVal = prevEur ? (isINR ? prevEur.rateToUsd * prevUsdToInr : prevEur.rateToUsd) : undefined;
   const eurTrend = calculateTrend(eurVal, eurPrevVal);
 
-  // Metal → card glow class mapping
-  const metalCardClass = (id: string) => {
-    if (id.startsWith("gold")) return "card-gold";
-    if (id === "silver")        return "card-silver";
-    if (id === "platinum")      return "card-platinum";
-    if (id === "aluminum")      return "card-blue";
-    return "card-bronze";
-  };
-
-  // Metal → accent colour for price display
+  // Metal → accent colors
   const metalAccentColor = (id: string) => {
-    if (id.startsWith("gold")) return "#d4a843";
-    if (id === "silver")        return "#a8b8cc";
-    if (id === "platinum")      return "#d0dae8";
-    if (id === "aluminum")      return "#38bdf8";
-    return "#b97340";
+    if (id.startsWith("gold")) return "#F59E0B";
+    if (id === "silver")        return "#94A3B8";
+    if (id === "platinum")      return "#E2E8F0";
+    if (id === "aluminum")      return "#38BDF8";
+    return "#D97706";
   };
 
   return (
@@ -140,10 +143,10 @@ export default function DashboardView({
       {/* ── Page Header ─────────────────────────────────────────── */}
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          {/* Mode pill */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-vault-gold/20 bg-vault-gold/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "#d4a843", background: "rgba(212,168,67,0.08)" }}>
-            <Sparkles className="h-3.5 w-3.5" />
-            {isINR ? "Indian Market · GoodReturns / IBJA Aligned" : "International Standard · USD · Troy Ounce"}
+          {/* Mode Pill */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-widest text-amber-400">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            {isINR ? "Indian Retail Standard (GoodReturns & IBJA Aligned)" : "International Standard Spot (USD / Troy Oz)"}
           </div>
 
           <h1 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">
@@ -151,10 +154,13 @@ export default function DashboardView({
           </h1>
 
           <p className="mt-2 text-sm text-slate-400">
-            Institutional-grade data for{" "}
-            <span className="font-semibold price-num" style={{ color: "#f0c860" }}>{currentData.date}</span>.
+            Verified spot data archived for{" "}
+            <span className="font-bold price-num text-amber-400">{currentData.date}</span>.
             {" "}Displaying in{" "}
-            <span className="font-bold text-white">{isINR ? "Indian Rupees (₹)" : "US Dollars ($)"}</span>.
+            <span className="font-extrabold text-white">{isINR ? "Indian Rupees (₹)" : "US Dollars ($)"}</span>.
+            <span className="ml-2.5 inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-300">
+              <Info className="h-3.5 w-3.5" /> Click any card to view historical trend chart!
+            </span>
           </p>
         </div>
 
@@ -168,56 +174,59 @@ export default function DashboardView({
       </div>
 
       {/* ── Market Spotlight Ticker ──────────────────────────────── */}
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
         {[
           {
+            id: "gold-24k", type: "metal" as const,
             label: "Gold 24K", sub: "99.9% Fine",
-            val: g24Val, prevVal: g24PrevVal, trend: gold24kTrend,
+            val: g24Val, trend: gold24kTrend,
             unit: isINR ? "/ 10g" : "/ oz",
             subLine: isINR ? `₹${getInrRateGram(gold24k).toLocaleString()} /g` : `$${gold24k.priceUsdGram.toFixed(2)} /g`,
-            color: "#d4a843", borderColor: "rgba(212,168,67,0.30)", glowColor: "rgba(212,168,67,0.12)",
+            color: "#F59E0B", border: "border-amber-500/30",
           },
           {
+            id: "gold-22k", type: "metal" as const,
             label: "Gold 22K", sub: "Jewelry Grade",
-            val: g22Val, prevVal: g22PrevVal, trend: gold22kTrend,
+            val: g22Val, trend: gold22kTrend,
             unit: isINR ? "/ 10g" : "/ oz",
             subLine: isINR ? `₹${getInrRateGram(gold22k).toLocaleString()} /g` : `$${gold22k?.priceUsdGram.toFixed(2)} /g`,
-            color: "#f0c860", borderColor: "rgba(240,200,96,0.25)", glowColor: "rgba(240,200,96,0.08)",
+            color: "#FBBF24", border: "border-yellow-500/30",
           },
           {
+            id: "silver", type: "metal" as const,
             label: "Silver", sub: "99.9% Fine",
-            val: silverVal, prevVal: silverPrevVal, trend: silverTrend,
+            val: silverVal, trend: silverTrend,
             unit: isINR ? "/ 1kg" : "/ oz",
             subLine: isINR ? `₹${getInrRateGram(silver || gold24k).toLocaleString()} /g` : `$${silver?.priceUsdGram.toFixed(2)} /g`,
-            color: "#a8b8cc", borderColor: "rgba(168,184,204,0.25)", glowColor: "rgba(168,184,204,0.08)",
+            color: "#94A3B8", border: "border-slate-700",
           },
           {
-            label: "EUR/Rate", sub: "Euro Exchange",
-            val: eurVal, prevVal: eurPrevVal, trend: eurTrend,
+            id: "EUR", type: "forex" as const,
+            label: "EUR Rate", sub: "Euro Exchange",
+            val: eurVal, trend: eurTrend,
             unit: isINR ? "(1 EUR)" : "(1 EUR)",
             subLine: isINR ? `1 EUR = ₹${eurVal.toFixed(2)}` : `1 EUR = $${eur?.rateToUsd}`,
-            color: "#38bdf8", borderColor: "rgba(56,189,248,0.25)", glowColor: "rgba(56,189,248,0.08)",
+            color: "#38BDF8", border: "border-sky-500/30",
           },
-        ].map(({ label, sub, val, trend, unit, subLine, color, borderColor, glowColor }) => (
+        ].map(({ id, type, label, sub, val, trend, unit, subLine, color, border }) => (
           <div
-            key={label}
-            className="relative overflow-hidden rounded-2xl p-4 transition-all duration-300"
-            style={{
-              background: "rgba(14,19,48,0.75)",
-              border: `1px solid ${borderColor}`,
-              boxShadow: `0 0 20px ${glowColor}, 0 4px 16px rgba(0,0,0,0.4)`,
-              backdropFilter: "blur(16px)",
-            }}
+            key={id}
+            onClick={() => setChartModalAsset({ type, id, name: label, symbol: id })}
+            className={`metal-card group relative cursor-pointer overflow-hidden rounded-2xl border ${border} bg-slate-900/90 p-4 backdrop-blur-md shadow-lg transition-all hover:scale-[1.02]`}
           >
-            {/* Top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+            {/* Top Gradient Shimmer Line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
 
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider" style={{ color }}>{label}</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">{sub}</p>
+                <div className="flex items-center gap-1">
+                  <p className="text-xs font-black uppercase tracking-wider" style={{ color }}>{label}</p>
+                  <LineChartIcon className="h-3 w-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-[10px] font-medium text-slate-400 mt-0.5">{sub}</p>
               </div>
-              {/* Trend badge */}
+
+              {/* Trend Badge */}
               <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${
                 trend.isFlat ? "badge-flat" : trend.isUp ? "badge-up" : "badge-down"
               }`}>
@@ -231,33 +240,32 @@ export default function DashboardView({
                 <span className="price-num text-xl font-black text-white">
                   {currencySymbol}{val.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </span>
-                <span className="text-[10px] text-slate-500">{unit}</span>
+                <span className="text-[10px] text-slate-400 font-medium">{unit}</span>
               </div>
-              <p className="price-num mt-1 text-[11px]" style={{ color: "rgba(212,168,67,0.7)" }}>{subLine}</p>
+              <div className="mt-1.5 flex items-center justify-between">
+                <p className="price-num text-[11px] text-amber-400/90 font-medium">{subLine}</p>
+                <span className="text-[10px] font-bold text-amber-400 group-hover:underline">
+                  Chart 📈
+                </span>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
       {/* ── Filter & Control Bar ─────────────────────────────────── */}
-      <div
-        className="mb-6 flex flex-col justify-between gap-3 rounded-2xl p-3 sm:flex-row sm:items-center"
-        style={{ background: "rgba(14,19,48,0.7)", border: "1px solid rgba(26,37,80,0.9)", backdropFilter: "blur(16px)" }}
-      >
+      <div className="mb-6 flex flex-col justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-3 sm:flex-row sm:items-center backdrop-blur-md">
         {/* Category Tabs */}
-        <div className="flex items-center gap-1 rounded-xl p-1 text-xs" style={{ background: "rgba(7,9,26,0.8)" }}>
+        <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 text-xs">
           {(["all", "metals", "forex"] as const).map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`rounded-lg px-3 py-1.5 font-semibold capitalize transition-all duration-200 ${
+              className={`rounded-lg px-3.5 py-1.5 font-bold capitalize transition-all duration-200 ${
                 activeCategory === cat
-                  ? "text-slate-950 shadow-gold-sm"
+                  ? "btn-gold text-slate-950 shadow-md"
                   : "text-slate-400 hover:text-white"
               }`}
-              style={activeCategory === cat ? {
-                background: "linear-gradient(135deg, #d4a843, #f0c860)",
-              } : {}}
             >
               {cat === "all" ? "All Markets" : cat === "metals" ? "⚙ Metals" : "💱 Forex"}
             </button>
@@ -265,8 +273,8 @@ export default function DashboardView({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-slate-300" style={{ background: "rgba(7,9,26,0.6)", border: "1px solid rgba(26,37,80,0.9)" }}>
-            <Globe className="h-3.5 w-3.5" style={{ color: "#d4a843" }} />
+          <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-300">
+            <Globe className="h-3.5 w-3.5 text-amber-400" />
             <span className="font-bold text-white">
               {isINR ? "₹ INR · 1g / 10g / 1kg" : "$ USD · Troy Oz"}
             </span>
@@ -279,42 +287,32 @@ export default function DashboardView({
               placeholder="Search asset..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-40 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-600 outline-none sm:w-48"
-              style={{ background: "rgba(7,9,26,0.8)", border: "1px solid rgba(26,37,80,0.9)" }}
-              onFocus={(e) => { e.target.style.borderColor = "rgba(212,168,67,0.5)"; }}
-              onBlur={(e) => { e.target.style.borderColor = "rgba(26,37,80,0.9)"; }}
+              className="w-40 rounded-xl border border-slate-800 bg-slate-950 pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-500/50 sm:w-48"
             />
           </div>
         </div>
       </div>
 
       {/* ── Main Report Container ─────────────────────────────────── */}
-      <div id="rates-report-container" className="space-y-10 rounded-2xl p-2 sm:p-4" style={{ background: "rgba(7,9,26,0.5)" }}>
-        {/* PDF / Report Header */}
-        <div
-          className="relative overflow-hidden rounded-2xl p-4"
-          style={{ background: "rgba(14,19,48,0.8)", border: "1px solid rgba(212,168,67,0.15)", backdropFilter: "blur(16px)" }}
-        >
-          {/* Subtle gold shimmer line */}
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(212,168,67,0.5), transparent)" }} />
+      <div id="rates-report-container" className="space-y-10 rounded-2xl bg-slate-950/60 p-2 sm:p-4">
+        {/* Report Header Banner */}
+        <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-slate-900/90 p-4 backdrop-blur-md">
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-950 text-xs font-black tracking-tight shadow-gold-sm"
-                style={{ background: "linear-gradient(135deg, #b88c2a, #f0c860)" }}
-              >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 text-xs font-black shadow-md">
                 DVR
               </div>
               <div>
                 <h2 className="text-base font-bold text-white">DailyVaultRates Official Spot Report</h2>
-                <p className="text-xs text-slate-500">
-                  {currentData.date} &nbsp;·&nbsp; {currencyMode} ({currencySymbol})
+                <p className="text-xs text-slate-400">
+                  {currentData.date} &nbsp;·&nbsp; Base: {currencyMode} ({currencySymbol})
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="price-num text-xs font-bold" style={{ color: "#10b981" }}>✓ VERIFIED</p>
+              <p className="price-num text-xs font-bold text-emerald-400">✓ VERIFIED</p>
               <p className="price-num mt-0.5 text-xs text-slate-400">1 USD = ₹{usdToInr.toFixed(2)}</p>
             </div>
           </div>
@@ -323,19 +321,19 @@ export default function DashboardView({
         {/* SECTION 1: Metals */}
         {(activeCategory === "all" || activeCategory === "metals") && (
           <div>
-            <div className="mb-4 flex items-center justify-between border-b border-vault-border/60 pb-3">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Coins className="h-5 w-5 text-amber-400" />
                 <h2 className="text-xl font-bold text-white">
                   {isINR ? "Precious Metals (24K, 22K, 18K Gold & Silver in INR ₹)" : "Precious & Industrial Metals (USD $)"}
                 </h2>
               </div>
-              <span className="text-xs text-slate-400">
-                {isINR ? "Indian Market Retail Standards (1g, 10g, 1kg)" : "US Standard Rates (Troy Oz, Gram)"}
+              <span className="text-xs font-semibold text-amber-400">
+                📈 Click card to view trend chart
               </span>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4.5 md:grid-cols-2 lg:grid-cols-3">
               {filteredMetals.map((metal) => {
                 const prev = prevMetalsMap.get(metal.id);
 
@@ -360,23 +358,26 @@ export default function DashboardView({
                 }
 
                 const trend = calculateTrend(displayPrimaryVal, prevVal);
-
                 const accentColor = metalAccentColor(metal.id);
 
                 return (
                   <div
                     key={metal.id}
-                    className={`metal-card glass relative overflow-hidden rounded-2xl p-5 ${metalCardClass(metal.id)}`}
+                    onClick={() =>
+                      setChartModalAsset({
+                        type: "metal",
+                        id: metal.id,
+                        name: metal.name,
+                        symbol: metal.symbol,
+                        subtext: metal.purity || metal.category,
+                      })
+                    }
+                    className="metal-card glass-card group relative overflow-hidden rounded-2xl p-5 border border-slate-800 hover:border-amber-500/40"
                   >
-                    {/* Top colour accent line */}
+                    {/* Top Accent Line */}
                     <div
-                      className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
+                      className="absolute top-0 left-0 right-0 h-[2px]"
                       style={{ background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)` }}
-                    />
-                    {/* Ambient glow corner */}
-                    <div
-                      className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-40"
-                      style={{ background: `radial-gradient(circle, ${accentColor}30 0%, transparent 70%)` }}
                     />
 
                     <div className="flex items-start justify-between">
@@ -384,21 +385,18 @@ export default function DashboardView({
                         <div className="flex items-center gap-1.5">
                           <span
                             className="rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-widest"
-                            style={{ background: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}30` }}
+                            style={{ background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}35` }}
                           >
                             {metal.symbol}
                           </span>
                           {metal.carat && (
-                            <span
-                              className="rounded px-1.5 py-0.5 text-[10px] font-bold"
-                              style={{ background: "rgba(212,168,67,0.10)", color: "#d4a843", border: "1px solid rgba(212,168,67,0.20)" }}
-                            >
+                            <span className="rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">
                               {metal.carat}
                             </span>
                           )}
                         </div>
                         <h3 className="mt-2.5 text-base font-bold text-white leading-tight">{metal.name}</h3>
-                        <p className="mt-0.5 text-[11px] text-slate-500">{metal.purity ? `Purity: ${metal.purity}` : metal.category}</p>
+                        <p className="mt-0.5 text-[11px] text-slate-400">{metal.purity ? `Purity: ${metal.purity}` : metal.category}</p>
                       </div>
 
                       {/* Trend Badge */}
@@ -411,22 +409,22 @@ export default function DashboardView({
                     </div>
 
                     {/* Primary Price */}
-                    <div className="mt-5">
+                    <div className="mt-4">
                       <div className="flex items-baseline gap-1.5">
                         <span className="price-num text-2xl font-black text-white tracking-tight">
                           {currencySymbol}{displayPrimaryVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
-                        <span className="text-[11px] text-slate-500">{primaryUnitLabel}</span>
+                        <span className="text-[11px] text-slate-400 font-medium">{primaryUnitLabel}</span>
                       </div>
                     </div>
 
                     {/* Breakdown Table */}
-                    <div className="mt-4 space-y-1.5 pt-3 text-xs" style={{ borderTop: "1px solid rgba(26,37,80,0.8)" }}>
+                    <div className="mt-4 space-y-1.5 border-t border-slate-800/80 pt-3 text-xs">
                       {isINR ? (
                         <>
                           {[{l:"1 Gram",v:getInrRateGram(metal),hi:false},{l:"8g (1 Sovereign)",v:getInrRateGram(metal)*8,hi:false},{l:"10 Grams",v:getInrRate10Gram(metal),hi:true},{l:"100 Grams",v:getInrRateGram(metal)*100,hi:false},{l:"1 Kilogram",v:getInrRateKg(metal),hi:false}].map(({l,v,hi})=>(
                             <div key={l} className="flex justify-between">
-                              <span className="text-slate-500">{l}</span>
+                              <span className="text-slate-400">{l}</span>
                               <span className={`price-num font-semibold ${hi ? "" : "text-slate-200"}`} style={hi ? { color: accentColor } : {}}>
                                 ₹{v.toLocaleString(undefined,{maximumFractionDigits:2})}
                               </span>
@@ -435,11 +433,19 @@ export default function DashboardView({
                         </>
                       ) : (
                         <>
-                          <div className="flex justify-between"><span className="text-slate-500">Troy Ounce</span><span className="price-num font-semibold" style={{ color: accentColor }}>${metal.priceUsdOunce.toLocaleString(undefined,{minimumFractionDigits:2})}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-500">Per Gram</span><span className="price-num font-semibold text-slate-200">${metal.priceUsdGram.toFixed(2)}</span></div>
-                          {metal.priceUsdTon && <div className="flex justify-between"><span className="text-slate-500">Metric Ton</span><span className="price-num font-semibold text-slate-200">${metal.priceUsdTon.toLocaleString()}</span></div>}
+                          <div className="flex justify-between"><span className="text-slate-400">Troy Ounce</span><span className="price-num font-semibold" style={{ color: accentColor }}>${metal.priceUsdOunce.toLocaleString(undefined,{minimumFractionDigits:2})}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-400">Per Gram</span><span className="price-num font-semibold text-slate-200">${metal.priceUsdGram.toFixed(2)}</span></div>
+                          {metal.priceUsdTon && <div className="flex justify-between"><span className="text-slate-400">Metric Ton</span><span className="price-num font-semibold text-slate-200">${metal.priceUsdTon.toLocaleString()}</span></div>}
                         </>
                       )}
+                    </div>
+
+                    {/* Card Footer Button */}
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-800/60 pt-2.5 text-[11px] font-bold text-amber-400 group-hover:text-amber-300">
+                      <span className="flex items-center gap-1.5">
+                        <LineChartIcon className="h-3.5 w-3.5" /> View Interactive Chart
+                      </span>
+                      <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                     </div>
                   </div>
                 );
@@ -454,52 +460,60 @@ export default function DashboardView({
         {/* SECTION 2: Forex Exchange Rates */}
         {(activeCategory === "all" || activeCategory === "forex") && (
           <div>
-            <div className="mb-4 flex items-center justify-between border-b border-vault-border/60 pb-3">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-vault-accent" />
+                <DollarSign className="h-5 w-5 text-sky-400" />
                 <h2 className="text-xl font-bold text-white">
                   {isINR ? "Global Currencies Compared to Indian Rupee (INR ₹)" : "Major Forex Exchange Rates (Base: USD $)"}
                 </h2>
               </div>
-              <span className="text-xs text-slate-400">
-                {isINR ? "Base Currency: INR (₹)" : "Base Currency: USD ($)"}
+              <span className="text-xs font-semibold text-amber-400">
+                📈 Click currency row to view trend chart
               </span>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl" style={{ border: "1px solid rgba(26,37,80,0.8)", backdropFilter: "blur(16px)", background: "rgba(14,19,48,0.7)" }}>
+            <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/80 backdrop-blur-md">
               <table className="w-full text-left text-xs">
-                <thead style={{ borderBottom: "1px solid rgba(26,37,80,0.8)", background: "rgba(7,9,26,0.6)" }}>
+                <thead className="border-b border-slate-800 bg-slate-950 text-slate-400">
                   <tr>
-                    {["Currency", "Symbol", isINR ? "Rate in INR (₹)" : "Rate to USD ($)", isINR ? "1 INR Equiv." : "USD → Currency", "24h Δ"].map(h => (
-                      <th key={h} className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#64748b" }}>{h}</th>
+                    {["Currency", "Symbol", isINR ? "Rate in INR (₹)" : "Rate to USD ($)", isINR ? "1 INR Equiv." : "USD → Currency", "24h Δ", "Analytics"].map(h => (
+                      <th key={h} className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody style={{ borderTop: "none" }}>
-                  {/* USD row (INR mode only) */}
+                <tbody className="divide-y divide-slate-800/80">
+                  {/* USD Row */}
                   {isINR && (
-                    <tr className="fx-row" style={{ borderBottom: "1px solid rgba(26,37,80,0.5)", background: "rgba(212,168,67,0.04)" }}>
+                    <tr
+                      onClick={() => setChartModalAsset({ type: "forex", id: "USD", name: "US Dollar", symbol: "$" })}
+                      className="fx-row group bg-amber-500/5 hover:bg-amber-500/10"
+                    >
                       <td className="px-5 py-3.5 font-semibold text-white">
                         <div className="flex items-center gap-2">
-                          <span className="price-num rounded-md px-2 py-0.5 text-[10px] font-black" style={{ background: "linear-gradient(135deg,#b88c2a,#f0c860)", color: "#07091a" }}>
+                          <span className="price-num rounded-md bg-gradient-to-r from-amber-400 to-amber-600 px-2 py-0.5 text-[10px] font-black text-slate-950">
                             USD
                           </span>
                           <span>US Dollar</span>
                         </div>
                       </td>
-                      <td className="price-num px-5 py-3.5 font-bold" style={{ color: "#d4a843" }}>$</td>
-                      <td className="price-num px-5 py-3.5 font-bold" style={{ color: "#f0c860" }}>₹{usdToInr.toFixed(2)}</td>
+                      <td className="price-num px-5 py-3.5 font-bold text-amber-400">$</td>
+                      <td className="price-num px-5 py-3.5 font-bold text-amber-300">₹{usdToInr.toFixed(2)}</td>
                       <td className="price-num px-5 py-3.5 text-slate-400">{(1 / usdToInr).toFixed(4)} USD</td>
-                      <td className="px-5 py-4 font-bold">
+                      <td className="px-5 py-3.5 font-bold">
                         {(() => {
                           const t = calculateTrend(usdToInr, prevUsdToInr);
                           return (
-                            <span className={`inline-flex items-center gap-1 ${t.isUp ? "text-emerald-400" : "text-rose-400"}`}>
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                              t.isFlat ? "badge-flat" : t.isUp ? "badge-up" : "badge-down"
+                            }`}>
                               {t.isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                               {t.isUp ? "+" : ""}{t.percentage}%
                             </span>
                           );
                         })()}
+                      </td>
+                      <td className="px-5 py-3.5 font-bold text-amber-400 group-hover:underline text-[11px]">
+                        Chart 📈
                       </td>
                     </tr>
                   )}
@@ -513,13 +527,14 @@ export default function DashboardView({
                     const equivalentStr = isINR ? `${(1/currentRateVal).toFixed(4)} ${curr.code}` : `${curr.usdToRate} ${curr.code}`;
 
                     return (
-                      <tr key={curr.code} className="fx-row" style={{ borderBottom: "1px solid rgba(26,37,80,0.4)" }}>
+                      <tr
+                        key={curr.code}
+                        onClick={() => setChartModalAsset({ type: "forex", id: curr.code, name: curr.name, symbol: curr.symbol })}
+                        className="fx-row group"
+                      >
                         <td className="px-5 py-3.5 font-semibold text-white">
                           <div className="flex items-center gap-2">
-                            <span
-                              className="price-num rounded-md px-2 py-0.5 text-[10px] font-black uppercase"
-                              style={{ background: "rgba(56,189,248,0.10)", color: "#38bdf8", border: "1px solid rgba(56,189,248,0.20)" }}
-                            >
+                            <span className="price-num rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-black uppercase text-sky-400">
                               {curr.code}
                             </span>
                             <span className="text-slate-200">{curr.name}</span>
@@ -536,6 +551,9 @@ export default function DashboardView({
                             {trend.isUp && !trend.isFlat ? "+" : ""}{trend.percentage}%
                           </span>
                         </td>
+                        <td className="px-5 py-3.5 font-bold text-amber-400 group-hover:underline text-[11px]">
+                          Chart 📈
+                        </td>
                       </tr>
                     );
                   })}
@@ -547,24 +565,18 @@ export default function DashboardView({
       </div>
 
       {/* ── Historical Archive Timeline ───────────────────────────── */}
-      <div
-        className="mt-12 rounded-2xl p-6"
-        style={{ background: "rgba(14,19,48,0.6)", border: "1px solid rgba(26,37,80,0.8)", backdropFilter: "blur(16px)" }}
-      >
-        <div className="flex items-center justify-between pb-4" style={{ borderBottom: "1px solid rgba(26,37,80,0.7)" }}>
+      <div className="mt-12 rounded-2xl border border-slate-800 bg-slate-900/80 p-6 backdrop-blur-md">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg"
-              style={{ background: "rgba(212,168,67,0.12)", border: "1px solid rgba(212,168,67,0.20)" }}
-            >
-              <Calendar className="h-4 w-4" style={{ color: "#d4a843" }} />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10">
+              <Calendar className="h-4 w-4 text-amber-400" />
             </div>
             <div>
               <h3 className="text-base font-bold text-white">Historical Spot Archives</h3>
-              <p className="text-[11px] text-slate-500">Git-backed · immutable daily records</p>
+              <p className="text-[11px] text-slate-400">Git-backed · immutable daily records</p>
             </div>
           </div>
-          <span className="rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "rgba(16,185,129,0.10)", color: "#34d399", border: "1px solid rgba(16,185,129,0.20)" }}>
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-400">
             {allAvailableDates.length} records
           </span>
         </div>
@@ -584,13 +596,22 @@ export default function DashboardView({
                 }`}
               >
                 {dateStr}
-                {isCurrent && <span className="ml-1 text-[9px] uppercase font-black" style={{ color: "#d4a843" }}>LIVE</span>}
+                {isCurrent && <span className="ml-1 text-[9px] uppercase font-black text-amber-400">LIVE</span>}
                 {!isCurrent && <ChevronRight className="h-3 w-3 opacity-40" />}
               </Link>
             );
           })}
         </div>
       </div>
+
+      {/* Interactive Trend Chart Modal */}
+      <TrendChartModal
+        isOpen={Boolean(chartModalAsset)}
+        onClose={() => setChartModalAsset(null)}
+        selectedAsset={chartModalAsset}
+        historicalHistory={historicalHistory}
+        currencyMode={currencyMode}
+      />
     </div>
   );
 }

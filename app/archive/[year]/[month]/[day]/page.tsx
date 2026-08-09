@@ -4,6 +4,7 @@ import {
   getRatesByDate,
   getPreviousDayRates,
   getAllAvailableDates,
+  getHistoricalDataHistory,
 } from "@/lib/dataFetcher";
 import DashboardView from "@/components/DashboardView";
 
@@ -74,14 +75,17 @@ export default async function ArchivePage({ params }: ArchivePageProps) {
 
   const previousData = await getPreviousDayRates(dateStr);
   const allAvailableDates = await getAllAvailableDates();
+  const historicalHistory = await getHistoricalDataHistory();
 
   return (
     <DashboardView
       currentData={currentData}
       previousData={previousData}
       allAvailableDates={allAvailableDates}
+      historicalHistory={historicalHistory}
       title={`Historical Spot Rates for ${dateStr}`}
       isArchivePage={true}
     />
   );
 }
+

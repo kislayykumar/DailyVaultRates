@@ -96,3 +96,22 @@ export async function getPreviousDayRates(currentDateStr: string): Promise<Daily
   const prevParam = allDates[currentIndex + 1];
   return getRatesByDate(prevParam.year, prevParam.month, prevParam.day);
 }
+
+/**
+ * Retrieves all available historical daily rate datasets, sorted chronologically ascending (oldest to newest).
+ */
+export async function getHistoricalDataHistory(): Promise<DailyRateData[]> {
+  const allDates = await getAllAvailableDates();
+  // Sort ascending by date for chronological charts
+  const chronologicalDates = [...allDates].reverse();
+
+  const results: DailyRateData[] = [];
+  for (const d of chronologicalDates) {
+    const data = await getRatesByDate(d.year, d.month, d.day);
+    if (data) {
+      results.push(data);
+    }
+  }
+  return results;
+}
+
