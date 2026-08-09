@@ -1,0 +1,122 @@
+name: Daily Spot Rates Fetcher
+
+on:
+  schedule:
+    - cron: '30 3 * * *'  # 9:00 AM IST (Indian market open) = 3:30 AM UTC
+    - cron: '0 12 * * *'  # 5:30 PM IST (Indian market close) = 12:00 PM UTC
+  workflow_dispatch:       # Manual trigger from GitHub Actions UI
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-and-commit:
+    runs-on: ubuntu-latest
+
+    # ── Retry strategy: retry the entire job up to 3 times on failure ──────────
+    # Each attempt waits 5 minutes between retries to let APIs recover
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+
+    steps:
+      # ── Step 1: Checkout ──────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Step 2: Setup Node.js ─────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── Step 3: Attempt 1 — Fetch rates ───────────────────────────────────
+      - name: Fetch spot rates (attempt 1)
+        id: fetch_attempt_1
+        run: node scripts/fetch-rates.js
+        continue-on-error: true
+
+      # ── Step 4: Wait then retry if attempt 1 failed ───────────────────────
+      - name: Wait before retry (attempt 1 failed)
+        if: steps.fetch_attempt_1.outcome == 'failure'
+        run: |
+          echo "⚠️  Attempt 1 failed. Waiting 3 minutes before retry..."
+          sleep 180
+
+      - name: Fetch spot rates (attempt 2)
+        id: fetch_attempt_2
+        if: steps.fetch_attempt_1.outcome == 'failure'
+        run: node scripts/fetch-rates.js
+        continue-on-error: true
+
+      # ── Step 5: Wait then retry if attempt 2 failed ───────────────────────
+      - name: Wait before retry (attempt 2 failed)
+        if: steps.fetch_attempt_1.outcome == 'failure' && steps.fetch_attempt_2.outcome == 'failure'
+        run: |
+          echo "⚠️  Attempt 2 failed. Waiting 5 minutes before final retry..."
+          sleep 300
+
+      - name: Fetch spot rates (attempt 3 — final)
+        id: fetch_attempt_3
+        if: steps.fetch_attempt_1.outcome == 'failure' && steps.fetch_attempt_2.outcome == 'failure'
+        run: node scripts/fetch-rates.js
+
+      # ── Step 6: Validate the output file was created ──────────────────────
+      - name: Validate output JSON exists and is valid
+        run: |
+          TODAY=$(date -u +'%Y/%m/%d')
+          FILE="data/${TODAY}.json"
+          if [ ! -f "$FILE" ]; then
+            echo "❌ ERROR: Data file $FILE was not created!"
+            exit 1
+          fi
+          # Validate it's valid JSON and has required keys
+          node -e "
+            const d = require('./$FILE');
+            const required = ['date','timestamp','metals','currencies'];
+            for (const key of required) {
+              if (!d[key]) { console.error('Missing key:', key); process.exit(1); }
+            }
+            if (d.metals.length < 6) { console.error('Expected 6 metals, got', d.metals.length); process.exit(1); }
+            if (d.currencies.length < 8) { console.error('Expected 8 currencies, got', d.currencies.length); process.exit(1); }
+            console.log('✅ Data file is valid:', Object.keys(d));
+            console.log('   Metals:', d.metals.map(m => m.id).join(', '));
+            console.log('   Gold 24K INR/g:', d.metals.find(m=>m.id==='gold-24k')?.priceInrGram);
+            console.log('   Platinum USD/oz:', d.metals.find(m=>m.id==='platinum')?.priceUsdOunce);
+          "
+
+      # ── Step 7: Commit and push ───────────────────────────────────────────
+      - name: Commit and push rate data
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          TODAY=$(date -u +'%Y-%m-%d')
+          git add data/
+          if git diff --staged --quiet; then
+            echo "ℹ️  No data changes to commit (rates unchanged)."
+          else
+            git commit -m "chore: daily rate update for ${TODAY} [skip ci]"
+            # Push with retry in case of transient git conflicts
+            for i in 1 2 3; do
+              git push origin main && break
+              echo "⚠️  Push attempt $i failed, retrying in 10s..."
+              sleep 10
+              git pull --rebase origin main
+            done
+          fi
+
+      # ── Step 8: Report job status summary ────────────────────────────────
+      - name: Report fetch summary
+        if: always()
+        run: |
+          echo "=== Fetch Summary ==="
+          echo "Attempt 1: ${{ steps.fetch_attempt_1.outcome }}"
+          echo "Attempt 2: ${{ steps.fetch_attempt_2.outcome }}"
+          echo "Attempt 3: ${{ steps.fetch_attempt_3.outcome }}"
+          TODAY=$(date -u +'%Y/%m/%d')
+          FILE="data/${TODAY}.json"
+          if [ -f "$FILE" ]; then
+            echo "✅ Output file exists: $FILE ($(wc -c < $FILE) bytes)"
+          else
+            echo "❌ Output file missing: $FILE"
+          fi
