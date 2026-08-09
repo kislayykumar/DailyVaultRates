@@ -22,12 +22,21 @@ export interface CurrencyRate {
   usdToRate: number;
 }
 
+export interface TaxStructure {
+  gstPercentage: number;          // Standard GST on gold/silver jewelry in India (3.0%)
+  customsDutyPercentage: number;  // Import Duty on raw gold/silver in India (6.0%)
+  hallmarkFeeInr: number;         // BIS Hallmark certification charge per item (₹45.00)
+  hallmarkGstPercentage: number;  // GST on hallmark service (18.0%)
+  lastUpdated: string;
+}
+
 export interface DailyRateData {
   date: string;
   timestamp: number;
   baseCurrency: string;
   metals: MetalRate[];
   currencies: CurrencyRate[];
+  taxes?: TaxStructure;
 }
 
 export interface DateParam {

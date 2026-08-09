@@ -22,6 +22,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import PdfDownloadButton from "@/components/PdfDownloadButton";
 import AdBanner from "@/components/AdBanner";
 import TrendChartModal from "@/components/TrendChartModal";
+import JewelryCalculator from "@/components/JewelryCalculator";
 import Link from "next/link";
 
 interface DashboardViewProps {
@@ -43,7 +44,7 @@ export default function DashboardView({
 }: DashboardViewProps) {
   const { currencyMode } = useCurrency();
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeCategory, setActiveCategory] = useState<"all" | "metals" | "forex">("all");
+  const [activeCategory, setActiveCategory] = useState<"all" | "metals" | "forex" | "calculator">("all");
   const [selectedGoldCarat, setSelectedGoldCarat] = useState<"gold-24k" | "gold-22k" | "gold-18k">("gold-24k");
 
   // State for interactive Trend Chart Modal
@@ -257,8 +258,8 @@ export default function DashboardView({
       {/* ── Filter & Category Controls Bar ────────────────────────────── */}
       <div className="mb-6 flex flex-col justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-3 sm:flex-row sm:items-center backdrop-blur-md">
         {/* Category Tabs */}
-        <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 text-xs">
-          {(["all", "metals", "forex"] as const).map((cat) => (
+        <div className="flex flex-wrap items-center gap-1 rounded-xl bg-slate-950 p-1 text-xs">
+          {(["all", "metals", "forex", "calculator"] as const).map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
@@ -268,7 +269,13 @@ export default function DashboardView({
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              {cat === "all" ? "All Markets" : cat === "metals" ? "⚙ Metals" : "💱 Forex"}
+              {cat === "all"
+                ? "All Markets"
+                : cat === "metals"
+                ? "⚙ Metals"
+                : cat === "forex"
+                ? "💱 Forex"
+                : "🧮 Jewelry Calculator"}
             </button>
           ))}
         </div>
@@ -589,6 +596,13 @@ export default function DashboardView({
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* SECTION 2: Interactive Jewelry Cost Calculator */}
+        {(activeCategory === "all" || activeCategory === "calculator") && (
+          <div className="my-8">
+            <JewelryCalculator currentData={currentData} currencyMode={currencyMode} />
           </div>
         )}
 

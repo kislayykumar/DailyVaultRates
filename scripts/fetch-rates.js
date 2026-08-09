@@ -402,12 +402,21 @@ async function main() {
     }
   ];
 
+  const taxes = {
+    gstPercentage: 3.0,
+    customsDutyPercentage: 6.0,
+    hallmarkFeeInr: 45.0,
+    hallmarkGstPercentage: 18.0,
+    lastUpdated: dateStr
+  };
+
   const outputData = {
     date: dateStr,
     timestamp: now.getTime(),
     baseCurrency: 'USD',
     metals,
-    currencies
+    currencies,
+    taxes
   };
 
   // ── Validate before writing — never write corrupt/zero data ───────────────
