@@ -69,10 +69,10 @@ export default function DashboardView({
  const sym = isINR ? "₹" : "$";
 
 
- const getInrG   = (m: MetalRate) => m.priceInrGram    ?? Number((m.priceUsdGram * usdToInr * (m.id.startsWith("gold") ? 1.09 : 1.145)).toFixed(2));
- const getInr10g = (m: MetalRate) => m.priceInr10Gram  ?? Number((getInrG(m) * 10).toFixed(2));
- const getInrKg  = (m: MetalRate) => m.priceInrKg      ?? Number((getInrG(m) * 1000).toFixed(2));
- const getPrevG  = (p?: MetalRate) => !p ? 0 : (p.priceInrGram ?? Number((p.priceUsdGram * prevUsdToInr * (p.id.startsWith("gold") ? 1.09 : 1.145)).toFixed(2)));
+ const getInrG   = (m?: MetalRate) => !m ? 0 : (m.priceInrGram    ?? Number(((m.priceUsdGram || 0) * usdToInr * (m.id?.startsWith("gold") ? 1.09 : 1.145)).toFixed(2)));
+ const getInr10g = (m?: MetalRate) => !m ? 0 : (m.priceInr10Gram  ?? Number((getInrG(m) * 10).toFixed(2)));
+ const getInrKg  = (m?: MetalRate) => !m ? 0 : (m.priceInrKg      ?? Number((getInrG(m) * 1000).toFixed(2)));
+ const getPrevG  = (p?: MetalRate) => !p ? 0 : (p.priceInrGram ?? Number(((p.priceUsdGram || 0) * prevUsdToInr * (p.id?.startsWith("gold") ? 1.09 : 1.145)).toFixed(2)));
 
 
  const gold24k = currentData.metals.find((m) => m.id === "gold-24k") || currentData.metals[0];
@@ -83,14 +83,15 @@ export default function DashboardView({
  const aluminum = currentData.metals.find((m) => m.id === "aluminum");
 
 
- const activeGold = selectedGoldCarat === "gold-24k" ? gold24k : selectedGoldCarat === "gold-22k" ? gold22k : gold18k || gold24k;
+ const fallbackMetal: MetalRate = { id: "gold-24k", name: "Gold 24K", symbol: "XAU-24K", priceUsdOunce: 0, priceUsdGram: 0, unit: "Troy Ounce", category: "Precious Metals" };
+ const activeGold = (selectedGoldCarat === "gold-24k" ? gold24k : selectedGoldCarat === "gold-22k" ? gold22k : gold18k) || gold24k || fallbackMetal;
  const prevActiveGold = prevMetalsMap.get(activeGold.id);
- const activeGoldVal = isINR ? getInr10g(activeGold) : activeGold.priceUsdOunce;
+ const activeGoldVal = isINR ? getInr10g(activeGold) : (activeGold?.priceUsdOunce || 0);
  const prevActiveGoldVal = prevActiveGold ? (isINR ? getPrevG(prevActiveGold) * 10 : prevActiveGold.priceUsdOunce) : undefined;
  const activeGoldTrend = calculateTrend(activeGoldVal, prevActiveGoldVal);
 
 
- const g24Val = isINR ? getInr10g(gold24k) : gold24k.priceUsdOunce;
+ const g24Val = isINR ? getInr10g(gold24k) : (gold24k?.priceUsdOunce || 0);
  const g24Trend = calculateTrend(g24Val, prevMetalsMap.get(gold24k?.id) ? (isINR ? getPrevG(prevMetalsMap.get(gold24k?.id)) * 10 : prevMetalsMap.get(gold24k?.id)?.priceUsdOunce) : undefined);
  const silverVal = isINR ? (silver ? getInrKg(silver) : 0) : silver?.priceUsdOunce || 0;
  const silverTrend = calculateTrend(silverVal, prevMetalsMap.get("silver") ? (isINR ? getPrevG(prevMetalsMap.get("silver")) * 1000 : prevMetalsMap.get("silver")?.priceUsdOunce) : undefined);
@@ -149,10 +150,10 @@ export default function DashboardView({
      {/* ── Spot Ticker — 2 cols mobile / 4 cols desktop ────── */}
      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
        {[
-         { id: "gold-24k", type: "metal" as const, label: "Gold 24K",   sub: "99.9% Fine",     val: g24Val,   trend: g24Trend,   unit: isINR ? "/10g" : "/oz",  sub2: isINR ? `${sym}${getInrG(gold24k).toLocaleString()} /g`   : `${sym}${gold24k.priceUsdGram.toFixed(2)} /g`, color: "#F0B429", bc: "rgba(240,180,41,0.18)" },
-         { id: "gold-22k", type: "metal" as const, label: "Gold 22K",   sub: "Jewelry Grade",  val: isINR ? getInr10g(gold22k) : gold22k.priceUsdOunce, trend: calculateTrend(isINR ? getInr10g(gold22k) : gold22k.priceUsdOunce, prevMetalsMap.get("gold-22k") ? (isINR ? getPrevG(prevMetalsMap.get("gold-22k")) * 10 : prevMetalsMap.get("gold-22k")?.priceUsdOunce) : undefined), unit: isINR ? "/10g" : "/oz", sub2: isINR ? `${sym}${getInrG(gold22k).toLocaleString()} /g` : `${sym}${gold22k?.priceUsdGram.toFixed(2)} /g`, color: "#FBBF24", bc: "rgba(251,191,36,0.16)" },
-         { id: "silver",   type: "metal" as const, label: "Silver",     sub: "99.9% Fine",     val: silverVal, trend: silverTrend, unit: isINR ? "/kg"  : "/oz", sub2: isINR ? `${sym}${getInrG(silver || gold24k).toLocaleString()} /g` : `${sym}${silver?.priceUsdGram.toFixed(2)} /g`, color: "#CBD5E1", bc: "rgba(203,213,225,0.12)" },
-         { id: "EUR",      type: "forex" as const, label: "EUR",        sub: "Euro Exchange",  val: eurVal,   trend: eurTrend,   unit: "per 1 EUR",              sub2: isINR ? `1 EUR = ${sym}${eurVal.toFixed(2)}` : `1 EUR = $${eur?.rateToUsd}`,                                               color: "#00D4FF", bc: "rgba(0,212,255,0.15)" },
+         { id: "gold-24k", type: "metal" as const, label: "Gold 24K",   sub: "99.9% Fine",     val: g24Val,   trend: g24Trend,   unit: isINR ? "/10g" : "/oz",  sub2: isINR ? `${sym}${getInrG(gold24k).toLocaleString()} /g`   : `${sym}${(gold24k?.priceUsdGram || 0).toFixed(2)} /g`, color: "#F0B429", bc: "rgba(240,180,41,0.18)" },
+         { id: "gold-22k", type: "metal" as const, label: "Gold 22K",   sub: "Jewelry Grade",  val: isINR ? getInr10g(gold22k) : (gold22k?.priceUsdOunce || 0), trend: calculateTrend(isINR ? getInr10g(gold22k) : (gold22k?.priceUsdOunce || 0), prevMetalsMap.get("gold-22k") ? (isINR ? getPrevG(prevMetalsMap.get("gold-22k")) * 10 : prevMetalsMap.get("gold-22k")?.priceUsdOunce) : undefined), unit: isINR ? "/10g" : "/oz", sub2: isINR ? `${sym}${getInrG(gold22k).toLocaleString()} /g` : `${sym}${(gold22k?.priceUsdGram || 0).toFixed(2)} /g`, color: "#FBBF24", bc: "rgba(251,191,36,0.16)" },
+         { id: "silver",   type: "metal" as const, label: "Silver",     sub: "99.9% Fine",     val: silverVal, trend: silverTrend, unit: isINR ? "/kg"  : "/oz", sub2: isINR ? `${sym}${getInrG(silver).toLocaleString()} /g` : `${sym}${(silver?.priceUsdGram || 0).toFixed(2)} /g`, color: "#CBD5E1", bc: "rgba(203,213,225,0.12)" },
+         { id: "EUR",      type: "forex" as const, label: "EUR",        sub: "Euro Exchange",  val: eurVal,   trend: eurTrend,   unit: "per 1 EUR",              sub2: isINR ? `1 EUR = ${sym}${eurVal.toFixed(2)}` : `1 EUR = $${(eur?.rateToUsd || 0).toFixed(4)}`, color: "#00D4FF", bc: "rgba(0,212,255,0.15)" },
        ].map(({ id, type, label, sub, val, trend, unit, sub2, color, bc }) => (
          <button
            key={id}
