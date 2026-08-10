@@ -1,0 +1,25 @@
+name: Daily Morning Email Digest
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # 6:00 AM UTC every morning
+  workflow_dispatch:
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Send Daily Digest Email
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          APP_URL: 'https://dailyvaultrates.vercel.app'
+        run: node scripts/send-daily-digest.js

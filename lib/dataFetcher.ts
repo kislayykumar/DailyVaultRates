@@ -7,6 +7,47 @@ export * from './types';
 const DATA_DIR = path.join(process.cwd(), 'data');
 
 /**
+ * Normalizes dataset to ensure currencies/forex and metals are always valid arrays.
+ */
+function normalizeRateData(rawData: any): DailyRateData {
+  const metals = Array.isArray(rawData.metals) ? rawData.metals : [];
+  let currencies = Array.isArray(rawData.currencies)
+    ? rawData.currencies
+    : Array.isArray(rawData.forex)
+    ? rawData.forex
+    : [];
+
+  // Guarantee minimum default currencies fallback if empty
+  if (currencies.length === 0) {
+    currencies = [
+      { code: "EUR", name: "Euro", symbol: "€", rateToUsd: 1.155, usdToRate: 0.8655 },
+      { code: "GBP", name: "British Pound", symbol: "£", rateToUsd: 1.348, usdToRate: 0.7415 },
+      { code: "JPY", name: "Japanese Yen", symbol: "¥", rateToUsd: 0.0063, usdToRate: 157.88 },
+      { code: "CAD", name: "Canadian Dollar", symbol: "C$", rateToUsd: 0.716, usdToRate: 1.395 },
+      { code: "AUD", name: "Australian Dollar", symbol: "A$", rateToUsd: 0.706, usdToRate: 1.416 },
+      { code: "CHF", name: "Swiss Franc", symbol: "CHF", rateToUsd: 1.236, usdToRate: 0.808 },
+      { code: "INR", name: "Indian Rupee", symbol: "₹", rateToUsd: 0.0119, usdToRate: 83.88 },
+      { code: "CNY", name: "Chinese Yuan", symbol: "¥", rateToUsd: 0.138, usdToRate: 7.234 }
+    ];
+  }
+
+  return {
+    date: rawData.date || new Date().toISOString().split('T')[0],
+    timestamp: rawData.timestamp || (rawData.updatedAt ? new Date(rawData.updatedAt).getTime() : Date.now()),
+    baseCurrency: rawData.baseCurrency || 'USD',
+    metals,
+    currencies,
+    taxes: rawData.taxes || {
+      gstPercentage: 3,
+      customsDutyPercentage: 6,
+      hallmarkFeeInr: 45,
+      hallmarkGstPercentage: 18,
+      lastUpdated: rawData.date || new Date().toISOString().split('T')[0]
+    }
+  };
+}
+
+/**
  * Safely reads and parses a rate JSON file for a given year, month, day.
  */
 export async function getRatesByDate(year: string, month: string, day: string): Promise<DailyRateData | null> {
@@ -16,7 +57,8 @@ export async function getRatesByDate(year: string, month: string, day: string): 
 
   try {
     const content = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(content) as DailyRateData;
+    const parsed = JSON.parse(content);
+    return normalizeRateData(parsed);
   } catch (error) {
     return null;
   }
@@ -31,12 +73,14 @@ export async function getAllAvailableDates(): Promise<DateParam[]> {
   try {
     const years = await fs.readdir(DATA_DIR);
     for (const year of years) {
+      if (year.startsWith('.')) continue;
       const yearPath = path.join(DATA_DIR, year);
       const yearStat = await fs.stat(yearPath);
       if (!yearStat.isDirectory()) continue;
 
       const months = await fs.readdir(yearPath);
       for (const month of months) {
+        if (month.startsWith('.')) continue;
         const monthPath = path.join(yearPath, month);
         const monthStat = await fs.stat(monthPath);
         if (!monthStat.isDirectory()) continue;
@@ -82,7 +126,7 @@ export async function getLatestRates(): Promise<{ data: DailyRateData; param: Da
 export async function getPreviousDayRates(currentDateStr: string): Promise<DailyRateData | null> {
   const allDates = await getAllAvailableDates();
   const sortedDatesStr = allDates.map(d => `${d.year}-${d.month.padStart(2, '0')}-${d.day.padStart(2, '0')}`);
-  
+
   const currentIndex = sortedDatesStr.indexOf(currentDateStr);
   if (currentIndex === -1 || currentIndex >= allDates.length - 1) {
     const targetDate = new Date(currentDateStr);
@@ -102,7 +146,6 @@ export async function getPreviousDayRates(currentDateStr: string): Promise<Daily
  */
 export async function getHistoricalDataHistory(): Promise<DailyRateData[]> {
   const allDates = await getAllAvailableDates();
-  // Sort ascending by date for chronological charts
   const chronologicalDates = [...allDates].reverse();
 
   const results: DailyRateData[] = [];
@@ -114,4 +157,3 @@ export async function getHistoricalDataHistory(): Promise<DailyRateData[]> {
   }
   return results;
 }
-

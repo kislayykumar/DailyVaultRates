@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "fetch-rates": "node scripts/fetch-rates.js"
+    "fetch-rates": "node scripts/fetch-rates.js",
+    "fetch-metals": "node scripts/fetch-metals.js",
+    "fetch-forex": "node scripts/fetch-forex.js",
+    "send-daily-digest": "node scripts/send-daily-digest.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -1,156 +1,215 @@
 {
- "date": "2026-08-10",
- "timestamp": 1786338327035,
- "baseCurrency": "USD",
- "metals": [
-   {
-     "id": "gold-24k",
-     "name": "Gold 24K (99.9% Pure)",
-     "symbol": "XAU-24K",
-     "carat": "24K",
-     "purity": "99.9%",
-     "priceUsdOunce": 4967.23,
-     "priceUsdGram": 159.7,
-     "priceInrGram": 15212,
-     "priceInr10Gram": 152120,
-     "priceInrKg": 15212000,
-     "unit": "Troy Ounce",
-     "category": "Precious Metals"
-   },
-   {
-     "id": "gold-22k",
-     "name": "Gold 22K (91.6% Jewelry)",
-     "symbol": "XAU-22K",
-     "carat": "22K",
-     "purity": "91.6%",
-     "priceUsdOunce": 4553.51,
-     "priceUsdGram": 146.38,
-     "priceInrGram": 13945,
-     "priceInr10Gram": 139450,
-     "priceInrKg": 13945000,
-     "unit": "Troy Ounce",
-     "category": "Precious Metals"
-   },
-   {
-     "id": "gold-18k",
-     "name": "Gold 18K (75.0% Jewelry)",
-     "symbol": "XAU-18K",
-     "carat": "18K",
-     "purity": "75.0%",
-     "priceUsdOunce": 3726.73,
-     "priceUsdGram": 119.81,
-     "priceInrGram": 11413,
-     "priceInr10Gram": 114130,
-     "priceInrKg": 11413000,
-     "unit": "Troy Ounce",
-     "category": "Precious Metals"
-   },
-   {
-     "id": "silver",
-     "name": "Silver (99.9% Fine)",
-     "symbol": "XAG",
-     "carat": "999",
-     "purity": "99.9%",
-     "priceUsdOunce": 63.5,
-     "priceUsdGram": 2.0416,
-     "priceInrGram": 245,
-     "priceInr10Gram": 2450,
-     "priceInrKg": 245000,
-     "unit": "Troy Ounce",
-     "category": "Precious Metals"
-   },
-   {
-     "id": "platinum",
-     "name": "Platinum (95.0% Pure)",
-     "symbol": "XPT",
-     "carat": "950",
-     "purity": "95.0%",
-     "priceUsdOunce": 1759.6,
-     "priceUsdGram": 56.57,
-     "priceInrGram": 5388.49,
-     "priceInr10Gram": 53884.9,
-     "priceInrKg": 5388490,
-     "unit": "Troy Ounce",
-     "category": "Precious Metals"
-   },
-   {
-     "id": "aluminum",
-     "name": "Aluminum (99.7% Pure)",
-     "symbol": "ALU",
-     "purity": "99.7%",
-     "priceUsdOunce": 0.10603,
-     "priceUsdGram": 0.003409,
-     "priceUsdTon": 3409.25,
-     "priceInrGram": 0.3247,
-     "priceInr10Gram": 3.247,
-     "priceInrKg": 324.75,
-     "unit": "Metric Ton",
-     "category": "Industrial Metals"
-   }
- ],
- "currencies": [
-   {
-     "code": "EUR",
-     "name": "Euro",
-     "symbol": "€",
-     "rateToUsd": 1.155392,
-     "usdToRate": 0.8655
-   },
-   {
-     "code": "GBP",
-     "name": "British Pound",
-     "symbol": "£",
-     "rateToUsd": 1.348529,
-     "usdToRate": 0.7415
-   },
-   {
-     "code": "JPY",
-     "name": "Japanese Yen",
-     "symbol": "¥",
-     "rateToUsd": 0.006334,
-     "usdToRate": 157.881
-   },
-   {
-     "code": "CAD",
-     "name": "Canadian Dollar",
-     "symbol": "C$",
-     "rateToUsd": 0.716626,
-     "usdToRate": 1.3954
-   },
-   {
-     "code": "AUD",
-     "name": "Australian Dollar",
-     "symbol": "A$",
-     "rateToUsd": 0.705993,
-     "usdToRate": 1.4164
-   },
-   {
-     "code": "CHF",
-     "name": "Swiss Franc",
-     "symbol": "CHF",
-     "rateToUsd": 1.236828,
-     "usdToRate": 0.8085
-   },
-   {
-     "code": "INR",
-     "name": "Indian Rupee",
-     "symbol": "₹",
-     "rateToUsd": 0.010498,
-     "usdToRate": 95.2535
-   },
-   {
-     "code": "CNY",
-     "name": "Chinese Yuan",
-     "symbol": "¥",
-     "rateToUsd": 0.148097,
-     "usdToRate": 6.7523
-   }
- ],
- "taxes": {
-   "gstPercentage": 3,
-   "customsDutyPercentage": 6,
-   "hallmarkFeeInr": 45,
-   "hallmarkGstPercentage": 18,
-   "lastUpdated": "2026-08-10"
- }
+  "date": "2026-08-10",
+  "updatedAt": "2026-08-10T17:07:56.212Z",
+  "timestamp": 1786381676212,
+  "baseCurrency": "USD",
+  "metals": [
+    {
+      "id": "gold-24k",
+      "name": "Gold 24K (99.9% Pure)",
+      "symbol": "XAU-24K",
+      "carat": "24K",
+      "purity": "99.9%",
+      "priceUsdOunce": 4413.4,
+      "priceUsdGram": 141.89,
+      "priceInrGram": 12973,
+      "priceInr10Gram": 129730,
+      "priceInrKg": 12973000,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "gold-22k",
+      "name": "Gold 22K (91.6% Jewelry)",
+      "symbol": "XAU-22K",
+      "carat": "22K",
+      "purity": "91.6%",
+      "priceUsdOunce": 4045.76,
+      "priceUsdGram": 130.07,
+      "priceInrGram": 11892,
+      "priceInr10Gram": 118920,
+      "priceInrKg": 11892000,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "gold-18k",
+      "name": "Gold 18K (75.0% Jewelry)",
+      "symbol": "XAU-18K",
+      "carat": "18K",
+      "purity": "75.0%",
+      "priceUsdOunce": 3310.05,
+      "priceUsdGram": 106.42,
+      "priceInrGram": 9730,
+      "priceInr10Gram": 97300,
+      "priceInrKg": 9730000,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "silver",
+      "name": "Silver (99.9% Fine)",
+      "symbol": "XAG",
+      "carat": "999",
+      "purity": "99.9%",
+      "priceUsdOunce": 65.06,
+      "priceUsdGram": 2.0919,
+      "priceInrGram": 201,
+      "priceInr10Gram": 2010,
+      "priceInrKg": 201000,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "platinum",
+      "name": "Platinum (95.0% Pure)",
+      "symbol": "XPT",
+      "carat": "950",
+      "purity": "95.0%",
+      "priceUsdOunce": 1752.8,
+      "priceUsdGram": 56.35,
+      "priceInrGram": 4726.96,
+      "priceInr10Gram": 47269.6,
+      "priceInrKg": 4726960,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "aluminum",
+      "name": "Aluminum (99.7% Pure)",
+      "symbol": "ALU",
+      "purity": "99.7%",
+      "priceUsdOunce": 0.10844,
+      "priceUsdGram": 0.003487,
+      "priceUsdTon": 3486.5,
+      "priceInrGram": 0.2924,
+      "priceInr10Gram": 2.92,
+      "priceInrKg": 292.4,
+      "unit": "Metric Ton",
+      "category": "Industrial Metals"
+    }
+  ],
+  "currencies": [
+    {
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€",
+      "rateToUsd": 1.155392,
+      "usdToRate": 0.865507
+    },
+    {
+      "code": "GBP",
+      "name": "British Pound",
+      "symbol": "£",
+      "rateToUsd": 1.348529,
+      "usdToRate": 0.741549
+    },
+    {
+      "code": "JPY",
+      "name": "Japanese Yen",
+      "symbol": "¥",
+      "rateToUsd": 0.006334,
+      "usdToRate": 157.880961
+    },
+    {
+      "code": "CAD",
+      "name": "Canadian Dollar",
+      "symbol": "C$",
+      "rateToUsd": 0.716626,
+      "usdToRate": 1.395428
+    },
+    {
+      "code": "AUD",
+      "name": "Australian Dollar",
+      "symbol": "A$",
+      "rateToUsd": 0.705993,
+      "usdToRate": 1.416444
+    },
+    {
+      "code": "CHF",
+      "name": "Swiss Franc",
+      "symbol": "CHF",
+      "rateToUsd": 1.236828,
+      "usdToRate": 0.80852
+    },
+    {
+      "code": "INR",
+      "name": "Indian Rupee",
+      "symbol": "₹",
+      "rateToUsd": 0.010498,
+      "usdToRate": 95.253496
+    },
+    {
+      "code": "CNY",
+      "name": "Chinese Yuan",
+      "symbol": "¥",
+      "rateToUsd": 0.148097,
+      "usdToRate": 6.752312
+    }
+  ],
+  "forex": [
+    {
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€",
+      "rateToUsd": 1.155392,
+      "usdToRate": 0.865507
+    },
+    {
+      "code": "GBP",
+      "name": "British Pound",
+      "symbol": "£",
+      "rateToUsd": 1.348529,
+      "usdToRate": 0.741549
+    },
+    {
+      "code": "JPY",
+      "name": "Japanese Yen",
+      "symbol": "¥",
+      "rateToUsd": 0.006334,
+      "usdToRate": 157.880961
+    },
+    {
+      "code": "CAD",
+      "name": "Canadian Dollar",
+      "symbol": "C$",
+      "rateToUsd": 0.716626,
+      "usdToRate": 1.395428
+    },
+    {
+      "code": "AUD",
+      "name": "Australian Dollar",
+      "symbol": "A$",
+      "rateToUsd": 0.705993,
+      "usdToRate": 1.416444
+    },
+    {
+      "code": "CHF",
+      "name": "Swiss Franc",
+      "symbol": "CHF",
+      "rateToUsd": 1.236828,
+      "usdToRate": 0.80852
+    },
+    {
+      "code": "INR",
+      "name": "Indian Rupee",
+      "symbol": "₹",
+      "rateToUsd": 0.010498,
+      "usdToRate": 95.253496
+    },
+    {
+      "code": "CNY",
+      "name": "Chinese Yuan",
+      "symbol": "¥",
+      "rateToUsd": 0.148097,
+      "usdToRate": 6.752312
+    }
+  ],
+  "taxes": {
+    "gstPercentage": 3,
+    "customsDutyPercentage": 6,
+    "hallmarkFeeInr": 45,
+    "hallmarkGstPercentage": 18,
+    "lastUpdated": "2026-08-10"
+  }
 }
