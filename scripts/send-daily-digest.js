@@ -167,6 +167,33 @@ function generateEmailHtml(rateData) {
   `;
 }
 
+async function fetchBrevoVerifiedSender(apiKey) {
+  try {
+    const url = 'https://api.brevo.com/v3/senders';
+    const options = {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'api-key': apiKey
+      }
+    };
+    const res = await fetchHttp(url, options);
+    if (res.statusCode === 200) {
+      const data = JSON.parse(res.body);
+      if (Array.isArray(data.senders) && data.senders.length > 0) {
+        const activeSender = data.senders.find(s => s.active) || data.senders[0];
+        if (activeSender && activeSender.email) {
+          console.log(`[Brevo] Auto-discovered verified account sender: ${activeSender.email}`);
+          return { email: activeSender.email, name: activeSender.name || 'DailyVaultRates Vault' };
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Brevo] Could not fetch verified senders:', err.message);
+  }
+  return null;
+}
+
 async function fetchBrevoSubscribers(apiKey, listId = 2) {
   try {
     const url = `https://api.brevo.com/v3/contacts/lists/${listId}/contacts?limit=50&offset=0`;
@@ -188,7 +215,7 @@ async function fetchBrevoSubscribers(apiKey, listId = 2) {
       }
     }
   } catch (err) {
-    console.warn('Could not fetch Brevo List 2 contacts dynamically:', err.message);
+    console.warn('[Brevo] Could not fetch Brevo List 2 contacts dynamically:', err.message);
   }
   return [];
 }
@@ -209,18 +236,30 @@ async function main() {
   }
 
   const htmlContent = generateEmailHtml(rateData);
-  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'digest@dailyvaultrates.com';
-  const senderName = process.env.BREVO_SENDER_NAME || 'DailyVaultRates Vault';
 
-  // 1. Fetch live subscribers from Brevo Contact List 2
+  // Auto-discover verified sender email from Brevo account if BREVO_SENDER_EMAIL not manually set
+  let senderEmail = process.env.BREVO_SENDER_EMAIL;
+  let senderName = process.env.BREVO_SENDER_NAME || 'DailyVaultRates Vault';
+
+  if (!senderEmail) {
+    const verifiedSender = await fetchBrevoVerifiedSender(apiKey);
+    if (verifiedSender) {
+      senderEmail = verifiedSender.email;
+      senderName = verifiedSender.name || senderName;
+    } else {
+      senderEmail = 'digest@dailyvaultrates.com';
+    }
+  }
+
+  // Fetch live subscribers from Brevo Contact List 2
   let recipients = await fetchBrevoSubscribers(apiKey, 2);
 
   if (recipients.length === 0) {
-    console.log('ℹ️ No active subscribers found in Brevo List 2 yet. Sending test digest to sender email.');
+    console.log(`ℹ️ No subscribers in Brevo List 2 yet. Sending test digest to verified sender email (${senderEmail}).`);
     recipients = [{ email: senderEmail, name: senderName }];
   }
 
-  console.log(`Sending morning digest email to ${recipients.length} subscriber(s)...`);
+  console.log(`Broadcasting morning digest email from <${senderEmail}> to ${recipients.length} subscriber(s)...`);
 
   const payload = JSON.stringify({
     sender: { name: senderName, email: senderEmail },
@@ -249,7 +288,7 @@ async function main() {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       console.log(`✅ Morning digest email successfully sent to ${recipients.length} subscriber(s)!`);
     } else {
-      console.warn('⚠️ Brevo response indicated an issue. Please verify Brevo API settings.');
+      console.warn('⚠️ Brevo response indicated an issue. Please check sender email verification in Brevo.');
     }
   } catch (err) {
     console.error('❌ Failed sending morning digest email:', err);
