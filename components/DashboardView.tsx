@@ -22,6 +22,7 @@ import PdfDownloadButton from "@/components/PdfDownloadButton";
 import AdBanner from "@/components/AdBanner";
 import TrendChartModal from "@/components/TrendChartModal";
 import JewelryCalculator from "@/components/JewelryCalculator";
+import SubscribeForm from "@/components/SubscribeForm";
 import Link from "next/link";
 
 
@@ -575,9 +576,13 @@ export default function DashboardView({
        )}
      </div>
 
+     {/* ── Daily Email Digest Subscription Form ─────────────── */}
+     <div className="mt-8">
+       <SubscribeForm />
+     </div>
 
      {/* ── Historical Archive ───────────────────────────── */}
-     <div className="mt-10 rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(6,12,24,0.88)] p-5 backdrop-blur-xl">
+     <div className="mt-8 rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(6,12,24,0.88)] p-5 backdrop-blur-xl">
        <div className="mb-4 flex items-center justify-between border-b border-[rgba(255,255,255,0.05)] pb-4">
          <div className="flex items-center gap-2.5">
            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-[rgba(0,212,255,0.22)] bg-[rgba(0,212,255,0.08)]">

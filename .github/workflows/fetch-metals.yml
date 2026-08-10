@@ -1,0 +1,39 @@
+name: Fetch Metals Rates
+
+on:
+  schedule:
+    - cron: '0 16 * * *' # 4:00 PM UTC - post LBMA London Fix
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-metals:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Fetch Metals Script
+        run: node scripts/fetch-metals.js
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No rate changes detected to commit."
+          else
+            git commit -m "chore(data): update daily metals spot rates [skip ci]"
+            git push origin main
+          fi
