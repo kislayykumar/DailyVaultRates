@@ -1,6 +1,6 @@
 {
   "date": "2026-08-12",
-  "timestamp": 1786511602798,
+  "timestamp": 1786532517740,
   "baseCurrency": "USD",
   "metals": [
     {
@@ -9,8 +9,8 @@
       "symbol": "XAU-24K",
       "carat": "24K",
       "purity": "99.9%",
-      "priceUsdOunce": 4461,
-      "priceUsdGram": 143.42,
+      "priceUsdOunce": 4399.7,
+      "priceUsdGram": 141.45,
       "priceInrGram": 15501,
       "priceInr10Gram": 155010,
       "priceInrKg": 15501000,
