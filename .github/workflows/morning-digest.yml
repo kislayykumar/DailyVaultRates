@@ -1,8 +1,8 @@
-name: Daily Morning Email Digest
+name: Daily Market Email Digest (3:35 PM IST)
 
 on:
   schedule:
-    - cron: '0 6 * * *' # 6:00 AM UTC every morning
+    - cron: '5 10 * * *' # 3:35 PM IST (10:05 AM UTC) every day - Market Close Digest
   workflow_dispatch:
 
 jobs:
