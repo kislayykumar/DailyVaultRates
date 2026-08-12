@@ -23,6 +23,8 @@ import AdBanner from "@/components/AdBanner";
 import TrendChartModal from "@/components/TrendChartModal";
 import JewelryCalculator from "@/components/JewelryCalculator";
 import SubscribeForm from "@/components/SubscribeForm";
+import StockDashboardSection from "@/components/stocks/StockDashboardSection";
+import StockEducationSection from "@/components/stocks/StockEducationSection";
 import Link from "next/link";
 
 
@@ -46,7 +48,7 @@ export default function DashboardView({
 }: DashboardViewProps) {
  const { currencyMode } = useCurrency();
  const [searchTerm, setSearchTerm] = useState("");
- const [activeCategory, setActiveCategory] = useState<"all" | "metals" | "forex" | "calculator">("all");
+ const [activeCategory, setActiveCategory] = useState<"all" | "metals" | "stocks" | "forex" | "calculator">("all");
  const [selectedGoldCarat, setSelectedGoldCarat] = useState<"gold-24k" | "gold-22k" | "gold-18k">("gold-24k");
  const [chartModalAsset, setChartModalAsset] = useState<{
    type: "metal" | "forex";
@@ -200,18 +202,20 @@ export default function DashboardView({
      <div className="mb-6 rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(6,12,24,0.85)] p-2 backdrop-blur-xl">
        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
          {/* Category tabs */}
-         <div className="flex items-center gap-1 rounded-xl bg-[rgba(4,8,16,0.7)] p-1 text-[11px]">
-           {(["all", "metals", "forex", "calculator"] as const).map((cat) => (
+         <div className="flex flex-wrap items-center gap-1 rounded-xl bg-[rgba(4,8,16,0.7)] p-1 text-[11px]">
+           {(["all", "metals", "stocks", "forex", "calculator"] as const).map((cat) => (
              <button
                key={cat}
                onClick={() => setActiveCategory(cat)}
                className={`rounded-lg px-3 py-1.5 font-bold capitalize transition-all duration-200 ${
                  activeCategory === cat
-                   ? "btn-gold text-[#040810] shadow-sm"
+                   ? cat === "stocks"
+                     ? "bg-emerald-500 text-slate-950 font-black shadow-sm"
+                     : "btn-gold text-[#040810] shadow-sm"
                    : "text-slate-400 hover:text-white"
                }`}
              >
-               {cat === "all" ? "All" : cat === "metals" ? "Metals" : cat === "forex" ? "Forex" : "Calc"}
+               {cat === "all" ? "All" : cat === "metals" ? "Metals" : cat === "stocks" ? "Stocks (NSE)" : cat === "forex" ? "Forex" : "Calc"}
              </button>
            ))}
          </div>
@@ -497,6 +501,14 @@ export default function DashboardView({
        {/* ── JEWELRY CALCULATOR ──────────────────────────── */}
        {(activeCategory === "all" || activeCategory === "calculator") && (
          <JewelryCalculator currentData={currentData} currencyMode={currencyMode} />
+       )}
+
+       {/* ── INDIAN EQUITY MARKETS (STOCKS) ─────────────── */}
+       {(activeCategory === "all" || activeCategory === "stocks") && (
+         <>
+           <StockDashboardSection />
+           <StockEducationSection />
+         </>
        )}
 
 
