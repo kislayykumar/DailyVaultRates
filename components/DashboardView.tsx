@@ -25,6 +25,7 @@ import JewelryCalculator from "@/components/JewelryCalculator";
 import SubscribeForm from "@/components/SubscribeForm";
 import StockDashboardSection from "@/components/stocks/StockDashboardSection";
 import StockEducationSection from "@/components/stocks/StockEducationSection";
+import MarketTickerTape from "@/components/MarketTickerTape";
 import Link from "next/link";
 
 
@@ -48,7 +49,7 @@ export default function DashboardView({
 }: DashboardViewProps) {
  const { currencyMode } = useCurrency();
  const [searchTerm, setSearchTerm] = useState("");
- const [activeCategory, setActiveCategory] = useState<"all" | "metals" | "stocks" | "forex" | "calculator">("all");
+ const [activeCategory, setActiveCategory] = useState<"all" | "metals" | "stocks" | "forex" | "calculator">("metals");
  const [selectedGoldCarat, setSelectedGoldCarat] = useState<"gold-24k" | "gold-22k" | "gold-18k">("gold-24k");
  const [chartModalAsset, setChartModalAsset] = useState<{
    type: "metal" | "forex";
@@ -119,8 +120,15 @@ export default function DashboardView({
 
 
  return (
-   <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-     <AdBanner slot="9876543210" format="horizontal" className="mb-6" />
+   <>
+     <MarketTickerTape
+       gold24kPrice={isINR ? getInr10g(gold24k) : (gold24k?.priceUsdOunce || 0)}
+       silverPrice={isINR ? getInrKg(silver) : (silver?.priceUsdOunce || 0)}
+       usdToInr={usdToInr}
+       currencyMode={currencyMode}
+     />
+     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+       <AdBanner slot="9876543210" format="horizontal" className="mb-6" />
 
 
      {/* ── Page Header ─────────────────────────────────────── */}
@@ -638,6 +646,7 @@ export default function DashboardView({
        historicalHistory={historicalHistory}
        currencyMode={currencyMode}
      />
-   </div>
- );
+    </div>
+    </>
+  );
 }

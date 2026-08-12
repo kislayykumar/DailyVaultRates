@@ -239,7 +239,7 @@ export default function StockDashboardSection() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
         {stockCardsSymbols.map((sym) => {
           const q = quotesMap.get(sym);
           const isUp = q ? q.change >= 0 : true;
@@ -248,7 +248,7 @@ export default function StockDashboardSection() {
             <button
               key={sym}
               onClick={() => setSelectedStock(sym)}
-              className="group relative flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 text-left backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:bg-slate-900/90 hover:shadow-xl hover:shadow-emerald-950/20"
+              className="group relative flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/60 p-3.5 sm:p-5 text-left backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:bg-slate-900/90 hover:shadow-xl hover:shadow-emerald-950/20"
             >
               <div>
                 {/* Symbol & Exchange */}
