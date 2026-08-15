@@ -12,11 +12,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const cleanEmail = email.trim().toLowerCase();
     const apiKey = process.env.BREVO_API_KEY;
 
     if (!apiKey) {
       console.warn('BREVO_API_KEY environment variable is not configured.');
-      // Return a simulated success response if API key is not configured yet for dev/demo
       return NextResponse.json(
         {
           success: true,
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Call Brevo Contacts API v3
+    // Call Brevo Contacts API v3 to create or update contact
     const brevoResponse = await fetch('https://api.brevo.com/v3/contacts', {
       method: 'POST',
       headers: {
@@ -35,12 +35,13 @@ export async function POST(request: Request) {
         'api-key': apiKey,
       },
       body: JSON.stringify({
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         attributes: {
           FIRSTNAME: name ? name.trim() : 'Subscriber',
         },
         listIds: [2], // Brevo Contact List ID 2
         updateEnabled: true,
+        emailBlacklisted: false, // Ensure contact receives emails even if previously blacklisted
       }),
     });
 
@@ -48,7 +49,6 @@ export async function POST(request: Request) {
       const errorData = await brevoResponse.json().catch(() => ({}));
       console.error('Brevo API Error:', errorData);
 
-      // Handle contact already exists gracefully if Brevo returns duplicate warning
       if (errorData?.code === 'duplicate_parameter') {
         return NextResponse.json(
           { success: true, message: 'You are already subscribed to daily rate digests!' },
