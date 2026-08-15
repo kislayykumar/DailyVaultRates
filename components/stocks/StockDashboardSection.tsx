@@ -6,7 +6,14 @@ import useSWR from "swr";
 import StockSearchBar from "./StockSearchBar";
 import StockDetailModal from "./StockDetailModal";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(errorText || `HTTP ${res.status}`);
+  }
+  return res.json();
+};
 
 interface StockQuote {
   symbol: string;
