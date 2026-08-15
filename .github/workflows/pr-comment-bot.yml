@@ -2,6 +2,8 @@ name: Automated PR Comment Bot
 
 on:
   pull_request_target:
+    branches:
+      - '**' # Trigger on PRs targeting ANY branch
     types: [opened, synchronize, reopened]
 
 permissions:

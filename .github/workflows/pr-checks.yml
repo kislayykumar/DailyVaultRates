@@ -8,7 +8,8 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
+  issues: write
   security-events: read
 
 jobs:
@@ -61,7 +62,7 @@ jobs:
             console.log('✅ All ' + count + ' JSON data files validated with zero syntax errors.');
           "
 
-      - name: 🤖 Generate Automated PR Verification Summary
+      - name: 🤖 Automated PR Verification Summary (Native)
         if: always()
         run: |
           echo "### 🤖 Automated PR Verification Summary" >> $GITHUB_STEP_SUMMARY
@@ -76,3 +77,13 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "*Generated automatically by DailyVaultRates CI Pipeline*" >> $GITHUB_STEP_SUMMARY
+
+      - name: 💬 Post or Update PR Discussion Comment
+        if: always() && github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const runBot = require('./scripts/pr-comment-bot.js');
+            await runBot({ github, context });

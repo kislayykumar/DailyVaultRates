@@ -1,11 +1,16 @@
 /**
  * GitHub Actions PR Comment Bot
- * Posts or updates a summary comment on Pull Requests.
+ * Posts or updates a summary comment on Pull Requests for every commit.
  */
 module.exports = async ({ github, context }) => {
   try {
-    const prNumber = context.payload.pull_request?.number || context.issue.number;
-    const author = context.payload.pull_request?.user?.login || context.actor;
+    const pr = context.payload.pull_request;
+    const prNumber = pr?.number || context.issue.number;
+    const author = pr?.user?.login || context.actor;
+    const targetBranch = pr?.base?.ref || 'main';
+    const sourceBranch = pr?.head?.ref || 'feature';
+    const headSha = pr?.head?.sha ? pr.head.sha.substring(0, 7) : 'latest';
+    const nowTimestamp = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
 
     if (!prNumber) {
       console.log('No PR number found. Skipping comment script.');
@@ -35,6 +40,9 @@ module.exports = async ({ github, context }) => {
 | Metric | Details |
 | :--- | :--- |
 | **PR Author** | @${author} |
+| **Branch Target** | \`${sourceBranch}\` ➔ \`${targetBranch}\` |
+| **Latest Commit** | \`${headSha}\` |
+| **Last Updated** | ${nowTimestamp} |
 | **Files Changed** | ${files.length} files (+${added} / -${deleted} lines) |
 | **Code Owner Gate** | Required Review & Approval from **@kislayykumar** |
 | **Automated Checks** | Next.js Build, ESLint, & Data Integrity Checks |
@@ -47,7 +55,7 @@ ${fileList.join('\n')}
 </details>
 
 ---
-*Generated automatically by DailyVaultRates Bot for @${context.repo.owner}/${context.repo.repo}*`;
+*Updated automatically on every commit by DailyVaultRates Bot for @${context.repo.owner}/${context.repo.repo}*`;
 
     const { data: comments } = await github.rest.issues.listComments({
       owner: context.repo.owner,
@@ -66,7 +74,7 @@ ${fileList.join('\n')}
         comment_id: botComment.id,
         body: prBody,
       });
-      console.log('✅ Successfully updated PR summary comment.');
+      console.log(`✅ Successfully updated PR summary comment for commit ${headSha}.`);
     } else {
       await github.rest.issues.createComment({
         owner: context.repo.owner,
@@ -74,7 +82,7 @@ ${fileList.join('\n')}
         issue_number: prNumber,
         body: prBody,
       });
-      console.log('✅ Successfully created new PR summary comment.');
+      console.log(`✅ Successfully created new PR summary comment for commit ${headSha}.`);
     }
   } catch (err) {
     console.log('PR Comment Bot execution note:', err.message);
