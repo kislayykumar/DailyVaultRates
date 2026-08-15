@@ -27,6 +27,7 @@ import SubscribeForm from "@/components/SubscribeForm";
 import StockDashboardSection from "@/components/stocks/StockDashboardSection";
 import StockEducationSection from "@/components/stocks/StockEducationSection";
 import MarketTickerTape from "@/components/MarketTickerTape";
+import ReleaseAnnouncementModal from "@/components/ReleaseAnnouncementModal";
 import Link from "next/link";
 
 interface DashboardViewProps {
@@ -759,6 +760,7 @@ export default function DashboardView({
           historicalHistory={historicalHistory}
           currencyMode={currencyMode}
         />
+        <ReleaseAnnouncementModal />
       </div>
     </>
   );
