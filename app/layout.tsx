@@ -64,7 +64,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
         {/* Google AdSense Script */}
@@ -76,10 +76,10 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="flex min-h-screen flex-col text-slate-100 antialiased selection:bg-[rgba(245,158,11,0.20)] selection:text-[#f59e0b]"
+        className="flex min-h-screen flex-col text-slate-100 antialiased"
         style={{
-          background: "#040810",
-          fontFamily: "'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif",
+          background: "#020409",
+          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
         }}
       >
         <Providers>

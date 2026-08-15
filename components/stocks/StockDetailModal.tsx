@@ -89,11 +89,11 @@ export default function StockDetailModal({ symbol, onClose }: StockDetailModalPr
       onClick={onClose}
     >
       <div
-        className="relative flex flex-col w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl border border-emerald-500/30 bg-slate-900/95 shadow-2xl shadow-emerald-950/50 backdrop-blur-2xl"
+        className="relative flex flex-col w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl border border-amber-500/30 bg-slate-950/95 shadow-2xl shadow-amber-950/40 backdrop-blur-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Glowing Header Accent */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-600" />
+        <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-emerald-400 to-amber-500" />
 
         {/* ── Modal Header ────────────────────────────────────────── */}
         <div className="flex items-start justify-between border-b border-slate-800/80 px-6 py-5">
