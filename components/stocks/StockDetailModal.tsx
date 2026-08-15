@@ -1,431 +1,369 @@
 "use client";
 
-import { useState } from "react";
-import { X, TrendingUp, TrendingDown, Minus, Activity, PieChart, ShieldCheck, Target, Building, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
+import {
+  X, TrendingUp, TrendingDown, Activity, ShieldCheck, Target,
+  AlertTriangle, ChevronRight, Clock, Building,
+} from "lucide-react";
 import useSWR from "swr";
 import PdfDownloadButton from "@/components/PdfDownloadButton";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-const formatISTTime = (isoString?: string) => {
-  if (!isoString) return "";
+const formatISTTime = (iso?: string) => {
+  if (!iso) return "";
   try {
-    const date = new Date(isoString);
-    return new Intl.DateTimeFormat("en-IN", {
-      timeZone: "Asia/Kolkata",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-    }).format(date) + " IST";
-  } catch (e) {
-    return isoString;
-  }
+    return (
+      new Intl.DateTimeFormat("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "numeric", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit", hour12: true,
+      }).format(new Date(iso)) + " IST"
+    );
+  } catch { return iso; }
 };
 
-interface StockDetailModalProps {
-  symbol: string | null;
-  onClose: () => void;
+const fmt  = (v: number | null | undefined, d = 2) => v == null ? "N/A" : v.toFixed(d);
+const fmtP = (v: number | null | undefined) => v == null ? "N/A" : `${(v * 100).toFixed(2)}%`;
+const fmtCap = (v: number | null | undefined) => {
+  if (!v) return "N/A";
+  if (v >= 1e12) return `₹${(v / 1e12).toFixed(2)} L.Cr`;
+  if (v >= 1e7)  return `₹${(v / 1e7).toFixed(2)} Cr`;
+  if (v >= 1e5)  return `₹${(v / 1e5).toFixed(2)} L`;
+  return `₹${v.toLocaleString()}`;
+};
+
+interface Props { symbol: string | null; onClose: () => void; }
+
+/* ── Shared stat tile ─────────────────────────────────────────────── */
+function StatTile({ label, value, sub, highlight }: { label: string; value: string; sub?: string; highlight?: "green" | "amber" | "red" }) {
+  const colors = {
+    green: { bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.22)", text: "#10B981" },
+    amber: { bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.22)", text: "#F59E0B" },
+    red:   { bg: "rgba(239,68,68,0.08)",  border: "rgba(239,68,68,0.22)",  text: "#EF4444" },
+  };
+  const c = highlight ? colors[highlight] : null;
+  return (
+    <div className="rounded-xl p-3.5"
+      style={{
+        background: c ? c.bg : "rgba(6,11,20,0.70)",
+        border: `1px solid ${c ? c.border : "rgba(255,255,255,0.07)"}`,
+      }}>
+      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">{label}</span>
+      <span className="font-mono text-sm font-black" style={{ color: c ? c.text : "#fff" }}>{value}</span>
+      {sub && <p className="mt-1.5 text-[10px] text-slate-600">{sub}</p>}
+    </div>
+  );
 }
 
-export default function StockDetailModal({ symbol, onClose }: StockDetailModalProps) {
+export default function StockDetailModal({ symbol, onClose }: Props) {
   const [activeTab, setActiveTab] = useState<"overview" | "ratios" | "ratings">("overview");
+  const [mounted, setMounted] = useState(false);
 
-  // Fetch 10-second price quote
-  const { data: stockData, isLoading: isStockLoading, error: stockError } = useSWR(
-    symbol ? `/api/stock?symbol=${encodeURIComponent(symbol)}` : null,
-    fetcher
-  );
+  useEffect(() => { setMounted(true); }, []);
 
-  // Fetch 12-hour fundamental analysis
-  const { data: analysisData, isLoading: isAnalysisLoading } = useSWR(
-    symbol ? `/api/analysis?symbol=${encodeURIComponent(symbol)}` : null,
-    fetcher
-  );
+  useEffect(() => {
+    if (!symbol) return;
+    setActiveTab("overview");
+    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", h);
+    return () => document.removeEventListener("keydown", h);
+  }, [symbol, onClose]);
 
-  if (!symbol) return null;
+  useEffect(() => {
+    document.body.style.overflow = symbol ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [symbol]);
 
-  const quote = stockData?.data;
+  const { data: stockData,    isLoading: loadingQ  } = useSWR(symbol ? `/api/stock?symbol=${encodeURIComponent(symbol)}`    : null, fetcher);
+  const { data: analysisData, isLoading: loadingA  } = useSWR(symbol ? `/api/analysis?symbol=${encodeURIComponent(symbol)}` : null, fetcher);
+
+  if (!mounted || !symbol) return null;
+
+  const quote    = stockData?.data;
   const analysis = analysisData?.data;
+  const isUp     = quote ? quote.change >= 0 : true;
+  const upColor  = isUp ? "#10B981" : "#EF4444";
 
-  const isUp = quote ? quote.change >= 0 : true;
-
-  // Format large numbers (e.g. Market Cap)
-  const formatMarketCap = (val: number | null | undefined) => {
-    if (!val) return "N/A";
-    if (val >= 1e12) return `₹${(val / 1e12).toFixed(2)} Lakh Cr`;
-    if (val >= 1e7) return `₹${(val / 1e7).toFixed(2)} Cr`;
-    if (val >= 1e5) return `₹${(val / 1e5).toFixed(2)} Lakh`;
-    return `₹${val.toLocaleString()}`;
+  const calc52 = () => {
+    const lo  = analysis?.metrics?.fiftyTwoWeekLow  || quote?.dayLow  || 0;
+    const hi  = analysis?.metrics?.fiftyTwoWeekHigh || quote?.dayHigh || 100;
+    const cur = quote?.price || 50;
+    if (hi <= lo) return 50;
+    return Math.max(0, Math.min(100, ((cur - lo) / (hi - lo)) * 100));
   };
 
-  const formatPercentage = (val: number | null | undefined) => {
-    if (val === null || val === undefined) return "N/A";
-    return `${(val * 100).toFixed(2)}%`;
-  };
+  const TABS = [
+    { id: "overview", label: "Overview",      Icon: Activity     },
+    { id: "ratios",   label: "Key Ratios",    Icon: ShieldCheck  },
+    { id: "ratings",  label: "Analyst Rating",Icon: Target       },
+  ] as const;
 
-  const formatNumber = (val: number | null | undefined, decimals = 2) => {
-    if (val === null || val === undefined) return "N/A";
-    return val.toFixed(decimals);
-  };
-
-  // Helper for 52-week position calculation
-  const calc52WeekPosition = () => {
-    const low = analysis?.metrics?.fiftyTwoWeekLow || quote?.dayLow || 0;
-    const high = analysis?.metrics?.fiftyTwoWeekHigh || quote?.dayHigh || 100;
-    const price = quote?.price || 50;
-
-    if (high <= low) return 50;
-    const pct = ((price - low) / (high - low)) * 100;
-    return Math.max(0, Math.min(100, pct));
-  };
-
-  return (
+  return ReactDOM.createPortal(
+    /* Backdrop */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4"
+      style={{ background: "rgba(2,4,9,0.88)", backdropFilter: "blur(18px)" }}
       onClick={onClose}
     >
+      {/* Modal card */}
       <div
-        className="relative flex flex-col w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl border border-amber-500/30 bg-slate-950/95 shadow-2xl shadow-amber-950/40 backdrop-blur-2xl"
+        id="stock-analysis-report-container"
+        className="relative flex flex-col w-full sm:max-w-3xl overflow-hidden sm:rounded-2xl"
+        style={{
+          maxHeight: "92vh",
+          background: "rgba(6,11,20,0.97)",
+          border: "1px solid rgba(16,185,129,0.18)",
+          boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 32px 80px rgba(0,0,0,0.9), 0 0 60px rgba(16,185,129,0.05)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Glowing Header Accent */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-emerald-400 to-amber-500" />
+        {/* Top shimmer line */}
+        <div className="h-[2px] w-full shrink-0"
+          style={{ background: "linear-gradient(90deg, transparent 0%, #10B981 40%, #F59E0B 60%, transparent 100%)" }} />
 
-        {/* ── Modal Header ────────────────────────────────────────── */}
-        <div className="flex items-start justify-between border-b border-slate-800/80 px-6 py-5">
+        {/* ── Header ─────────────────────────────────────────────────── */}
+        <div className="flex items-start justify-between gap-4 px-5 py-4 shrink-0"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono text-xl font-black text-white">{symbol}</span>
-              <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-extrabold text-emerald-400">
+              <span className="rounded-md px-2 py-0.5 text-[10px] font-extrabold"
+                style={{ background: "rgba(16,185,129,0.10)", border: "1px solid rgba(16,185,129,0.25)", color: "#10B981" }}>
                 {quote?.exchange || "NSE"}
               </span>
               {analysis?.profile?.sector && (
-                <span className="hidden sm:inline-block rounded-md border border-slate-700 bg-slate-800/80 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+                <span className="hidden sm:inline-block rounded-md px-2 py-0.5 text-[10px] font-semibold"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", color: "#94A3B8" }}>
                   {analysis.profile.sector}
                 </span>
               )}
             </div>
-            <h2 className="mt-1 text-sm font-medium text-slate-400">
+            <p className="mt-1 text-sm font-medium text-slate-500">
               {quote?.longName || quote?.shortName || "Indian Stock Market Intelligence"}
-            </h2>
+            </p>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 shrink-0">
             <PdfDownloadButton
               targetId="stock-analysis-report-container"
-              filename={`${symbol || "Stock"}-Financial-Analysis-Report.pdf`}
-              label="Export Stock PDF"
+              filename={`${symbol}-Analysis.pdf`}
+              label="Export PDF"
               variant="emerald"
             />
-            <button
-              onClick={onClose}
-              className="rounded-xl border border-slate-800 bg-slate-800/50 p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-            >
-              <X className="h-5 w-5" />
+            <button onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-500 transition-all hover:text-white hover:bg-white/8"
+              style={{ border: "1px solid rgba(255,255,255,0.09)" }}>
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        <div id="stock-analysis-report-container" className="flex flex-col">
-
-        {/* ── Price Banner ────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80 bg-slate-950/40 px-6 py-4">
-          {isStockLoading ? (
-            <div className="h-10 w-48 animate-pulse rounded-lg bg-slate-800" />
-          ) : stockError ? (
-            <div className="text-rose-400 text-sm flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" /> Unable to fetch live price data.
+        {/* ── Price Banner ────────────────────────────────────────────── */}
+        <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 shrink-0"
+          style={{
+            background: "rgba(6,11,20,0.60)",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+          }}>
+          {loadingQ ? (
+            <div className="h-10 w-48 animate-pulse rounded-xl" style={{ background: "rgba(255,255,255,0.06)" }} />
+          ) : quote ? (
+            <div className="flex items-baseline gap-3">
+              <span className="price-num font-mono text-3xl font-black text-white">
+                ₹{quote.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-extrabold tabular-nums"
+                style={{
+                  background: isUp ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
+                  border: `1px solid ${isUp ? "rgba(16,185,129,0.28)" : "rgba(239,68,68,0.28)"}`,
+                  color: upColor,
+                }}>
+                {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+                {isUp ? "+" : ""}{quote.change.toFixed(2)} ({quote.changePercent.toFixed(2)}%)
+              </span>
             </div>
           ) : (
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-3xl font-black text-white">
-                ₹{quote?.price ? quote.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "0.00"}
-              </span>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-extrabold tabular-nums ${
-                  isUp
-                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                    : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                }`}
-              >
-                {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-                {isUp ? "+" : ""}
-                {quote?.change ? quote.change.toFixed(2) : "0.00"} (
-                {quote?.changePercent ? quote.changePercent.toFixed(2) : "0.00"}%)
-              </span>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "#EF4444" }}>
+              <AlertTriangle className="h-4 w-4" /> Unable to fetch live price
             </div>
           )}
 
           <div className="text-right">
             {quote?.timestamp && (
-              <span className="text-[11px] font-bold text-slate-300 block">
-                Last Fetched: <span className="font-mono text-emerald-400">{formatISTTime(quote.timestamp)}</span>
+              <span className="text-[11px] font-mono block" style={{ color: "#10B981" }}>
+                <Clock className="inline h-3 w-3 mr-1" />{formatISTTime(quote.timestamp)}
               </span>
             )}
-            <span className="text-[10px] text-slate-400 font-medium">15-Min Delayed SEBI Public Feed</span>
+            <span className="text-[10px] text-slate-600">15-min delayed SEBI public feed</span>
           </div>
         </div>
 
-        {/* ── Tab Navigation ─────────────────────────────────────── */}
-        <div className="flex border-b border-slate-800/80 bg-slate-900/60 px-6">
-          {[
-            { id: "overview", label: "Overview & Stats", icon: Activity },
-            { id: "ratios", label: "Key Ratios & Health", icon: ShieldCheck },
-            { id: "ratings", label: "Analyst Ratings & Profile", icon: Target },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+        {/* ── Tab Nav ─────────────────────────────────────────────────── */}
+        <div className="flex shrink-0 px-5"
+          style={{ background: "rgba(6,11,20,0.80)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          {TABS.map(({ id, label, Icon }) => {
+            const active = activeTab === id;
             return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-bold transition-all ${
-                  isActive
-                    ? "border-emerald-400 text-emerald-400 bg-emerald-500/5"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
-                }`}
-              >
+              <button key={id}
+                onClick={() => setActiveTab(id)}
+                className="flex items-center gap-1.5 border-b-2 px-4 py-3 text-xs font-bold transition-all"
+                style={{
+                  borderColor: active ? "#10B981" : "transparent",
+                  color: active ? "#10B981" : "#64748B",
+                  background: active ? "rgba(16,185,129,0.05)" : "transparent",
+                }}>
                 <Icon className="h-3.5 w-3.5" />
-                <span>{tab.label}</span>
+                <span>{label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* ── Modal Tab Body (Scrollable) ─────────────────────────── */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* ── Scrollable Tab Body ─────────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
 
-          {/* TAB 1: OVERVIEW & STATS */}
+          {/* TAB: OVERVIEW */}
           {activeTab === "overview" && (
-            <div className="space-y-6">
-              {/* 52-Week Range Slider Bar */}
-              <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-4">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
-                  <span>52-Week Low</span>
-                  <span className="text-emerald-400 uppercase tracking-wider">52-Week High Range</span>
-                  <span>52-Week High</span>
+            <div className="space-y-4">
+              {/* 52-week range */}
+              <div className="rounded-2xl p-4"
+                style={{ background: "rgba(6,11,20,0.70)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">
+                  <span>52-Wk Low</span>
+                  <span style={{ color: "#10B981" }}>52-Week Range</span>
+                  <span>52-Wk High</span>
                 </div>
-                <div className="relative h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">
-                  <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-indigo-500 rounded-full opacity-30 w-full" />
-                  <div
-                    className="absolute top-0 bottom-0 w-3 -ml-1.5 rounded-full bg-emerald-400 shadow-md shadow-emerald-400/50"
-                    style={{ left: `${calc52WeekPosition()}%` }}
-                  />
+                <div className="relative h-2 w-full rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div className="absolute inset-0 rounded-full opacity-20"
+                    style={{ background: "linear-gradient(90deg, #10B981, #F59E0B)" }} />
+                  <div className="absolute top-0 bottom-0 w-3 -ml-1.5 rounded-full shadow-md"
+                    style={{ left: `${calc52()}%`, background: "#10B981", boxShadow: "0 0 8px rgba(16,185,129,0.6)" }} />
                 </div>
                 <div className="flex items-center justify-between font-mono text-xs font-bold text-white mt-2">
-                  <span>₹{analysis?.metrics?.fiftyTwoWeekLow ? analysis.metrics.fiftyTwoWeekLow.toFixed(2) : (quote?.dayLow ? (quote.dayLow * 0.85).toFixed(2) : "N/A")}</span>
-                  <span className="text-emerald-400">Current: ₹{quote?.price?.toFixed(2) || "0.00"}</span>
-                  <span>₹{analysis?.metrics?.fiftyTwoWeekHigh ? analysis.metrics.fiftyTwoWeekHigh.toFixed(2) : (quote?.dayHigh ? (quote.dayHigh * 1.15).toFixed(2) : "N/A")}</span>
+                  <span className="text-slate-500">
+                    ₹{fmt(analysis?.metrics?.fiftyTwoWeekLow ?? (quote?.dayLow ? quote.dayLow * 0.85 : null))}
+                  </span>
+                  <span style={{ color: "#10B981" }}>Current: ₹{fmt(quote?.price)}</span>
+                  <span className="text-slate-500">
+                    ₹{fmt(analysis?.metrics?.fiftyTwoWeekHigh ?? (quote?.dayHigh ? quote.dayHigh * 1.15 : null))}
+                  </span>
                 </div>
               </div>
 
-              {/* Quick Stat Grid */}
+              {/* Stat grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {[
-                  { label: "Open Price", val: quote?.open ? `₹${quote.open.toFixed(2)}` : "N/A" },
-                  { label: "Previous Close", val: quote?.previousClose ? `₹${quote.previousClose.toFixed(2)}` : "N/A" },
-                  { label: "Day High", val: quote?.dayHigh ? `₹${quote.dayHigh.toFixed(2)}` : "N/A" },
-                  { label: "Day Low", val: quote?.dayLow ? `₹${quote.dayLow.toFixed(2)}` : "N/A" },
-                  { label: "Trading Volume", val: quote?.volume ? quote.volume.toLocaleString() : "N/A" },
-                  { label: "Market Capitalization", val: formatMarketCap(quote?.marketCap) },
-                ].map((stat, i) => (
-                  <div key={i} className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-3.5">
-                    <span className="text-[11px] font-medium text-slate-400 block mb-1">{stat.label}</span>
-                    <span className="font-mono text-sm font-bold text-white">{stat.val}</span>
-                  </div>
-                ))}
+                <StatTile label="Open Price"       value={quote?.open          ? `₹${quote.open.toFixed(2)}`          : "N/A"} />
+                <StatTile label="Prev. Close"      value={quote?.previousClose  ? `₹${quote.previousClose.toFixed(2)}` : "N/A"} />
+                <StatTile label="Day High"         value={quote?.dayHigh        ? `₹${quote.dayHigh.toFixed(2)}`       : "N/A"} highlight="green" />
+                <StatTile label="Day Low"          value={quote?.dayLow         ? `₹${quote.dayLow.toFixed(2)}`        : "N/A"} highlight="red" />
+                <StatTile label="Volume"           value={quote?.volume         ? quote.volume.toLocaleString()         : "N/A"} />
+                <StatTile label="Market Cap"       value={fmtCap(quote?.marketCap)} />
               </div>
             </div>
           )}
 
-          {/* TAB 2: KEY RATIOS & FINANCIAL HEALTH */}
+          {/* TAB: KEY RATIOS */}
           {activeTab === "ratios" && (
-            <div className="space-y-6">
-              {isAnalysisLoading ? (
-                <div className="py-12 text-center text-slate-400 text-sm flex items-center justify-center gap-2">
+            <div className="space-y-4">
+              {loadingA ? (
+                <div className="py-12 flex items-center justify-center gap-2 text-sm text-slate-500">
                   <div className="h-4 w-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
-                  <span>Loading fundamental ratios &amp; balance sheet data…</span>
+                  Loading financial ratios…
                 </div>
               ) : (
-                <>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {/* Trailing P/E */}
-                    <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">Trailing P/E Ratio</span>
-                      <span className="font-mono text-lg font-bold text-white">
-                        {formatNumber(analysis?.metrics?.trailingPE)}
-                      </span>
-                      <div className="mt-2">
-                        {analysis?.metrics?.trailingPE && analysis.metrics.trailingPE < 25 ? (
-                          <span className="rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                            Reasonable Valuation
-                          </span>
-                        ) : (
-                          <span className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-                            Rich Valuation
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Forward P/E */}
-                    <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">Forward P/E</span>
-                      <span className="font-mono text-lg font-bold text-white">
-                        {formatNumber(analysis?.metrics?.forwardPE)}
-                      </span>
-                      <div className="mt-2">
-                        <span className="text-[10px] text-slate-500 font-medium">Forward Earnings Multiple</span>
-                      </div>
-                    </div>
-
-                    {/* Price to Book */}
-                    <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">Price to Book (P/B)</span>
-                      <span className="font-mono text-lg font-bold text-white">
-                        {formatNumber(analysis?.metrics?.priceToBook)}
-                      </span>
-                      <div className="mt-2">
-                        <span className="text-[10px] text-slate-500 font-medium">Book Value Multiple</span>
-                      </div>
-                    </div>
-
-                    {/* Debt to Equity */}
-                    <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">Debt-to-Equity (D/E)</span>
-                      <span className="font-mono text-lg font-bold text-white">
-                        {formatNumber(analysis?.metrics?.debtToEquity)}
-                      </span>
-                      <div className="mt-2">
-                        {analysis?.metrics?.debtToEquity && analysis.metrics.debtToEquity < 100 ? (
-                          <span className="rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                            Healthy Leverage
-                          </span>
-                        ) : (
-                          <span className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-                            Higher Leverage
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Return on Equity (ROE) */}
-                    <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">Return on Equity (ROE)</span>
-                      <span className="font-mono text-lg font-bold text-emerald-400">
-                        {formatPercentage(analysis?.metrics?.returnOnEquity)}
-                      </span>
-                      <div className="mt-2">
-                        {analysis?.metrics?.returnOnEquity && analysis.metrics.returnOnEquity > 0.15 ? (
-                          <span className="rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                            High Efficiency
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-slate-500 font-medium">Capital Return Rate</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Profit Margin */}
-                    <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
-                      <span className="text-[11px] font-medium text-slate-400 block mb-1">Profit Margin</span>
-                      <span className="font-mono text-lg font-bold text-white">
-                        {formatPercentage(analysis?.metrics?.profitMargins)}
-                      </span>
-                      <div className="mt-2">
-                        <span className="text-[10px] text-slate-500 font-medium">Net Profit Margin</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <StatTile label="Trailing P/E"
+                    value={fmt(analysis?.metrics?.trailingPE)}
+                    sub={analysis?.metrics?.trailingPE < 25 ? "Reasonable valuation" : "Rich valuation"}
+                    highlight={analysis?.metrics?.trailingPE < 25 ? "green" : "amber"} />
+                  <StatTile label="Forward P/E"
+                    value={fmt(analysis?.metrics?.forwardPE)}
+                    sub="Forward earnings multiple" />
+                  <StatTile label="Price / Book"
+                    value={fmt(analysis?.metrics?.priceToBook)}
+                    sub="Book value multiple" />
+                  <StatTile label="Debt / Equity"
+                    value={fmt(analysis?.metrics?.debtToEquity)}
+                    sub={analysis?.metrics?.debtToEquity < 100 ? "Healthy leverage" : "High leverage"}
+                    highlight={analysis?.metrics?.debtToEquity < 100 ? "green" : "amber"} />
+                  <StatTile label="Return on Equity"
+                    value={fmtP(analysis?.metrics?.returnOnEquity)}
+                    sub={analysis?.metrics?.returnOnEquity > 0.15 ? "High efficiency" : "Capital return rate"}
+                    highlight={analysis?.metrics?.returnOnEquity > 0.15 ? "green" : undefined} />
+                  <StatTile label="Profit Margin"
+                    value={fmtP(analysis?.metrics?.profitMargins)}
+                    sub="Net profit margin" />
+                </div>
               )}
             </div>
           )}
 
-          {/* TAB 3: ANALYST RATINGS & PROFILE */}
+          {/* TAB: ANALYST RATINGS */}
           {activeTab === "ratings" && (
-            <div className="space-y-6">
-              {isAnalysisLoading ? (
-                <div className="py-12 text-center text-slate-400 text-sm flex items-center justify-center gap-2">
+            <div className="space-y-4">
+              {loadingA ? (
+                <div className="py-12 flex items-center justify-center gap-2 text-sm text-slate-500">
                   <div className="h-4 w-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
-                  <span>Fetching institutional analyst ratings &amp; consensus targets…</span>
+                  Fetching analyst consensus…
                 </div>
               ) : (
                 <>
-                  {/* Analyst Consensus Rating Bar */}
-                  <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Analyst Recommendation Breakdown ({analysis?.recommendations?.total || 0} Analysts)
+                  {/* Analyst breakdown */}
+                  <div className="rounded-2xl p-5 space-y-4"
+                    style={{ background: "rgba(6,11,20,0.70)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                        Analyst Breakdown ({analysis?.recommendations?.total || 0} analysts)
                       </h3>
-                      <span className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-xs font-extrabold uppercase text-indigo-400">
-                        Consensus: {analysis?.targets?.recommendationKey?.toUpperCase() || "HOLD"}
+                      <span className="rounded-md px-2.5 py-0.5 text-[10px] font-extrabold uppercase"
+                        style={{ background: "rgba(99,102,241,0.10)", border: "1px solid rgba(99,102,241,0.25)", color: "#818CF8" }}>
+                        {analysis?.targets?.recommendationKey?.toUpperCase() || "HOLD"}
                       </span>
                     </div>
 
-                    {/* Visual Bar */}
                     {analysis?.recommendations?.total ? (
                       <div className="space-y-2">
-                        <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-800">
-                          <div
-                            style={{ width: `${((analysis.recommendations.strongBuy + analysis.recommendations.buy) / analysis.recommendations.total) * 100}%` }}
-                            className="bg-emerald-500"
-                            title="Buy / Strong Buy"
-                          />
-                          <div
-                            style={{ width: `${(analysis.recommendations.hold / analysis.recommendations.total) * 100}%` }}
-                            className="bg-amber-400"
-                            title="Hold"
-                          />
-                          <div
-                            style={{ width: `${((analysis.recommendations.sell + analysis.recommendations.strongSell) / analysis.recommendations.total) * 100}%` }}
-                            className="bg-rose-500"
-                            title="Sell / Strong Sell"
-                          />
+                        <div className="flex h-2.5 w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                          <div style={{ width: `${((analysis.recommendations.strongBuy + analysis.recommendations.buy) / analysis.recommendations.total) * 100}%`, background: "#10B981" }} />
+                          <div style={{ width: `${(analysis.recommendations.hold / analysis.recommendations.total) * 100}%`, background: "#F59E0B" }} />
+                          <div style={{ width: `${((analysis.recommendations.sell + analysis.recommendations.strongSell) / analysis.recommendations.total) * 100}%`, background: "#EF4444" }} />
                         </div>
-
-                        <div className="flex justify-between text-xs font-bold text-slate-300">
-                          <span className="text-emerald-400">
-                            Buy: {analysis.recommendations.strongBuy + analysis.recommendations.buy}
-                          </span>
-                          <span className="text-amber-400">
-                            Hold: {analysis.recommendations.hold}
-                          </span>
-                          <span className="text-rose-400">
-                            Sell: {analysis.recommendations.sell + analysis.recommendations.strongSell}
-                          </span>
+                        <div className="flex justify-between text-xs font-bold">
+                          <span style={{ color: "#10B981" }}>Buy: {analysis.recommendations.strongBuy + analysis.recommendations.buy}</span>
+                          <span style={{ color: "#F59E0B" }}>Hold: {analysis.recommendations.hold}</span>
+                          <span style={{ color: "#EF4444" }}>Sell: {analysis.recommendations.sell + analysis.recommendations.strongSell}</span>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-500">Analyst consensus data not available for this ticker.</p>
+                      <p className="text-xs text-slate-600">No analyst data available for this ticker.</p>
                     )}
                   </div>
 
-                  {/* Target Price Visualizer */}
+                  {/* Price targets */}
                   {analysis?.targets?.targetMeanPrice && (
-                    <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 space-y-3">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Consensus Price Targets
-                      </h3>
+                    <div className="rounded-2xl p-5 space-y-3"
+                      style={{ background: "rgba(6,11,20,0.70)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-600">Consensus Price Targets</h3>
                       <div className="grid grid-cols-3 gap-3 text-center">
-                        <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-                          <span className="text-[10px] text-slate-500 font-bold block">Target Low</span>
-                          <span className="font-mono text-sm font-bold text-rose-400">
+                        <div className="rounded-xl p-3"
+                          style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.18)" }}>
+                          <span className="text-[10px] font-bold text-slate-600 block">Low</span>
+                          <span className="font-mono text-sm font-black" style={{ color: "#EF4444" }}>
                             ₹{analysis.targets.targetLowPrice?.toFixed(2) || "N/A"}
                           </span>
                         </div>
-                        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
-                          <span className="text-[10px] text-emerald-400 font-bold block">Mean Target</span>
-                          <span className="font-mono text-base font-bold text-white">
+                        <div className="rounded-xl p-3"
+                          style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                          <span className="text-[10px] font-bold block" style={{ color: "#10B981" }}>Mean</span>
+                          <span className="font-mono text-base font-black text-white">
                             ₹{analysis.targets.targetMeanPrice?.toFixed(2) || "N/A"}
                           </span>
                         </div>
-                        <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-                          <span className="text-[10px] text-slate-500 font-bold block">Target High</span>
-                          <span className="font-mono text-sm font-bold text-emerald-400">
+                        <div className="rounded-xl p-3"
+                          style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.18)" }}>
+                          <span className="text-[10px] font-bold text-slate-600 block">High</span>
+                          <span className="font-mono text-sm font-black" style={{ color: "#10B981" }}>
                             ₹{analysis.targets.targetHighPrice?.toFixed(2) || "N/A"}
                           </span>
                         </div>
@@ -433,18 +371,19 @@ export default function StockDetailModal({ symbol, onClose }: StockDetailModalPr
                     </div>
                   )}
 
-                  {/* Company Description */}
-                  <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 space-y-2">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                      About {quote?.shortName || symbol}
+                  {/* Company summary */}
+                  <div className="rounded-2xl p-5 space-y-2"
+                    style={{ background: "rgba(6,11,20,0.70)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
+                      <Building className="h-3 w-3" /> About {quote?.shortName || symbol}
                     </h3>
-                    <p className="text-xs leading-relaxed text-slate-300">
-                      {analysis?.profile?.summary || "No company profile description available."}
+                    <p className="text-xs leading-relaxed text-slate-400">
+                      {analysis?.profile?.summary || "No company profile available."}
                     </p>
                     {analysis?.profile?.industry && (
-                      <div className="pt-2 text-[11px] text-slate-400">
-                        <strong>Industry:</strong> {analysis.profile.industry}
-                      </div>
+                      <p className="text-[11px] text-slate-600 pt-1">
+                        Industry: <span className="text-slate-400 font-semibold">{analysis.profile.industry}</span>
+                      </p>
                     )}
                   </div>
                 </>
@@ -452,8 +391,8 @@ export default function StockDetailModal({ symbol, onClose }: StockDetailModalPr
             </div>
           )}
         </div>
-        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
