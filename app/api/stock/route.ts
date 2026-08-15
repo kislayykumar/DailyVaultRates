@@ -264,7 +264,7 @@ export async function GET(request: Request) {
             };
           }
         } catch (err) {
-          console.warn(`Yahoo Finance quote fallback triggered for ${sym}:`, err);
+          console.warn("Yahoo Finance quote fallback triggered for %s:", sym, err);
         }
 
         // Return fallback quote if live Yahoo quote failed
