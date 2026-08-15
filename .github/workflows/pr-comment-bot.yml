@@ -1,0 +1,29 @@
+name: Automated PR Comment Bot
+
+on:
+  pull_request_target:
+    branches:
+      - '**' # Trigger on PRs targeting ANY branch
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  comment-summary:
+    name: Post PR Summary Comment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Post or Update PR Summary Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const runBot = require('./scripts/pr-comment-bot.js');
+            await runBot({ github, context });

@@ -48,40 +48,44 @@ function fetchJson(url) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// YAHOO FINANCE  —  Live spot/futures prices (no API key required)
-//
-//  GC=F  → Gold futures      (USD / troy oz)
-//  SI=F  → Silver futures    (USD / troy oz)
-//  PL=F  → Platinum futures  (USD / troy oz)
-//  ALI=F → Aluminum futures  (USD / metric ton) on COMEX
-// ─────────────────────────────────────────────────────────────────────────────
+let YahooFinance;
+try {
+  const yfModule = require('yahoo-finance2');
+  YahooFinance = yfModule.default || yfModule;
+} catch (e) {
+  console.warn('yahoo-finance2 module load warning:', e.message);
+}
 
+const yahooFinanceInstance = YahooFinance ? new YahooFinance({ suppressNotices: ['yahooSurvey'] }) : null;
 
 async function fetchYahooPrice(symbol) {
- try {
-   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
-   const data = await fetchJson(url);
-   const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-   if (price && price > 0) {
-     console.log(`  [Yahoo] ${symbol.padEnd(6)} → $${price}`);
-     return price;
-   }
-   throw new Error('No valid price in Yahoo response');
- } catch (err) {
-   // Try backup Yahoo query endpoint
-   try {
-     const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
-     const data2 = await fetchJson(url2);
-     const price2 = data2?.chart?.result?.[0]?.meta?.regularMarketPrice;
-     if (price2 && price2 > 0) {
-       console.log(`  [Yahoo2] ${symbol.padEnd(6)} → $${price2}`);
-       return price2;
-     }
-   } catch (_) {}
-   console.warn(`  [Yahoo] ${symbol} failed: ${err.message}`);
-   return null;
- }
+  if (yahooFinanceInstance) {
+    try {
+      const q = await yahooFinanceInstance.quote(symbol);
+      const price = q?.regularMarketPrice;
+      if (price && price > 0) {
+        console.log(`  [Yahoo] ${symbol.padEnd(6)} → $${price}`);
+        return price;
+      }
+    } catch (err) {
+      console.warn(`  [Yahoo-SDK] ${symbol} failed: ${err.message}`);
+    }
+  }
+
+  // Fallback to raw fetch if SDK is unavailable
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+    const data = await fetchJson(url);
+    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+    if (price && price > 0) {
+      console.log(`  [Yahoo] ${symbol.padEnd(6)} → $${price}`);
+      return price;
+    }
+    throw new Error('No valid price in Yahoo response');
+  } catch (err) {
+    console.warn(`  [Yahoo] ${symbol} failed: ${err.message}`);
+    return null;
+  }
 }
 
 

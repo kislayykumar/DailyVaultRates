@@ -1,0 +1,5 @@
+# GitHub CODEOWNERS Configuration
+# Set @kislayykumar as the required code owner for all files in this repository.
+# No Pull Request can be merged without explicit review and approval from @kislayykumar.
+
+*       @kislayykumar

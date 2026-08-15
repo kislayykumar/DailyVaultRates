@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, TrendingUp, TrendingDown, Minus, Activity, PieChart, ShieldCheck, Target, Building, AlertTriangle } from "lucide-react";
 import useSWR from "swr";
+import PdfDownloadButton from "@/components/PdfDownloadButton";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -112,13 +113,23 @@ export default function StockDetailModal({ symbol, onClose }: StockDetailModalPr
               {quote?.longName || quote?.shortName || "Indian Stock Market Intelligence"}
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-xl border border-slate-800 bg-slate-800/50 p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <PdfDownloadButton
+              targetId="stock-analysis-report-container"
+              filename={`${symbol || "Stock"}-Financial-Analysis-Report.pdf`}
+              label="Export Stock PDF"
+              variant="emerald"
+            />
+            <button
+              onClick={onClose}
+              className="rounded-xl border border-slate-800 bg-slate-800/50 p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
+
+        <div id="stock-analysis-report-container" className="flex flex-col">
 
         {/* ── Price Banner ────────────────────────────────────────── */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80 bg-slate-950/40 px-6 py-4">
@@ -440,6 +451,7 @@ export default function StockDetailModal({ symbol, onClose }: StockDetailModalPr
               )}
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
