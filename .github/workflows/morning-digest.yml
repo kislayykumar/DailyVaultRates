@@ -1,6 +1,10 @@
 name: Daily Market Email Digest (3:35 PM IST)
 
 on:
+  workflow_run:
+    workflows: ["Daily Spot Rates Fetcher"]
+    types:
+      - completed
   schedule:
     - cron: '5 10 * * *' # 3:35 PM IST (10:05 AM UTC) every day - Market Close Digest
   workflow_dispatch:
@@ -8,6 +12,7 @@ on:
 jobs:
   send-digest:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout repository
