@@ -2,7 +2,7 @@ name: Daily Spot Rates Fetcher
 
 on:
   schedule:
-    - cron: '0 4 * * *'   # 9:30 AM IST (Indian market open) = 4:00 AM UTC
+    - cron: '0 5 * * *'   # 10:30 AM IST (Indian market open) = 4:00 AM UTC
     - cron: '0 10 * * *'  # 3:30 PM IST (Indian market close) = 10:00 AM UTC
     - cron: '0 12 * * *'  # 5:30 PM IST (Evening wrap) = 12:00 PM UTC
   workflow_dispatch:       # Manual trigger from GitHub Actions UI

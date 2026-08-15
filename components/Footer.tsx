@@ -14,9 +14,9 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 pt-10 pb-6 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 mb-12">
           {[
-            { icon: Shield, title: "SEBI & IBJA Verified",  desc: "Spot rates cross-checked with IBJA and GoodReturns",        color: "#10B981", bg: "rgba(16,185,129,0.08)",  border: "rgba(16,185,129,0.20)" },
-            { icon: Zap,    title: "Dual-Session Updates",  desc: "Automated at 9:00 AM & 5:30 PM IST daily",                   color: "#F59E0B", bg: "rgba(245,158,11,0.08)",  border: "rgba(245,158,11,0.20)" },
-            { icon: Globe,  title: "Global Coverage",       desc: "Metals, currencies & equities in one tamper-proof vault",    color: "#00D4FF", bg: "rgba(0,212,255,0.08)",   border: "rgba(0,212,255,0.20)"  },
+            { icon: Shield, title: "SEBI & IBJA Verified", desc: "Spot rates cross-checked with IBJA and GoodReturns", color: "#10B981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.20)" },
+            { icon: Zap, title: "Dual-Session Updates", desc: "Automated at 9:00 AM & 5:30 PM IST daily", color: "#F59E0B", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.20)" },
+            { icon: Globe, title: "Global Coverage", desc: "Metals, currencies & equities in one tamper-proof vault", color: "#00D4FF", bg: "rgba(0,212,255,0.08)", border: "rgba(0,212,255,0.20)" },
           ].map(({ icon: Icon, title, desc, color, bg, border }) => (
             <div key={title}
               className="flex items-start gap-3 rounded-2xl p-4 transition-all hover:scale-[1.01]"
@@ -56,8 +56,8 @@ export default function Footer() {
             <div className="mt-5 flex flex-wrap gap-2">
               {[
                 { icon: Shield, label: "Verified" },
-                { icon: Zap,    label: "Realtime" },
-                { icon: Globe,  label: "Global"   },
+                { icon: Zap, label: "Realtime" },
+                { icon: Globe, label: "Global" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label}
                   className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold text-slate-300"
@@ -109,9 +109,9 @@ export default function Footer() {
             <div className="mt-3 glow-divider-cyan" />
             <div className="mt-4 space-y-3">
               {[
-                { icon: Database, title: "Immutable Market Vault",  desc: "Tamper-proof daily historical records" },
-                { icon: Zap,      title: "Dual Session Updates",    desc: "Automated at 9:00 AM & 5:30 PM IST" },
-                { icon: Shield,   title: "SEBI & IBJA Aligned",     desc: "Verified public spot rates & delayed feeds" },
+                { icon: Database, title: "Immutable Market Vault", desc: "Tamper-proof daily historical records" },
+                { icon: Zap, title: "Dual Session Updates", desc: "Automated at 9:00 AM & 5:30 PM IST" },
+                { icon: Shield, title: "SEBI & IBJA Aligned", desc: "Verified public spot rates & delayed feeds" },
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title}
                   className="flex items-start gap-2.5 rounded-xl p-2.5 transition-colors hover:bg-white/2"

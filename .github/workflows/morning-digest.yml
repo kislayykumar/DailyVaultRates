@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: '5 10 * * *' # 3:35 PM IST (10:05 AM UTC) every day - Market Close Digest
+    - cron: '5 9 * * *' # 3:35 PM IST (10:05 AM UTC) every day - Market Close Digest
   workflow_dispatch:
 
 jobs:

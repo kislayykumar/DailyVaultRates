@@ -86,11 +86,10 @@ export default function Navbar() {
               id="navbar-inr-toggle"
               onClick={() => setCurrencyMode("INR")}
               title="Indian Rupee (₹)"
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-bold transition-all duration-250 ${
-                currencyMode === "INR"
-                  ? "btn-gold text-[#020409] shadow-md"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-bold transition-all duration-250 ${currencyMode === "INR"
+                ? "btn-gold text-[#020409] shadow-md"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
             >
               <span className="text-sm font-black">₹</span>
               <span className="hidden sm:inline text-[11px]">INR</span>
@@ -100,11 +99,10 @@ export default function Navbar() {
               id="navbar-usd-toggle"
               onClick={() => setCurrencyMode("USD")}
               title="US Dollar ($)"
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-bold transition-all duration-250 ${
-                currencyMode === "USD"
-                  ? "btn-gold text-[#020409] shadow-md"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-bold transition-all duration-250 ${currencyMode === "USD"
+                ? "btn-gold text-[#020409] shadow-md"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
             >
               <DollarSign className="h-3.5 w-3.5 stroke-[2.5]" />
               <span className="hidden sm:inline text-[11px]">USD</span>
