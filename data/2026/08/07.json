@@ -94,5 +94,12 @@
     { "code": "CHF", "name": "Swiss Franc", "symbol": "CHF", "rateToUsd": 1.1520, "usdToRate": 0.8681 },
     { "code": "INR", "name": "Indian Rupee", "symbol": "₹", "rateToUsd": 0.0105, "usdToRate": 95.16 },
     { "code": "CNY", "name": "Chinese Yuan", "symbol": "¥", "rateToUsd": 0.1391, "usdToRate": 7.1891 }
-  ]
+  ],
+  "taxes": {
+    "gstPercentage": 3,
+    "customsDutyPercentage": 6,
+    "hallmarkFeeInr": 45,
+    "hallmarkGstPercentage": 18,
+    "lastUpdated": "2026-08-07"
+  }
 }

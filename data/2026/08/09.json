@@ -145,5 +145,12 @@
       "rateToUsd": 0.147818,
       "usdToRate": 6.7651
     }
-  ]
+  ],
+  "taxes": {
+    "gstPercentage": 3,
+    "customsDutyPercentage": 6,
+    "hallmarkFeeInr": 45,
+    "hallmarkGstPercentage": 18,
+    "lastUpdated": "2026-08-09"
+  }
 }

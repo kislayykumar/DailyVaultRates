@@ -93,6 +93,13 @@
     { "code": "AUD", "name": "Australian Dollar", "symbol": "A$", "rateToUsd": 0.6575, "usdToRate": 1.5209 },
     { "code": "CHF", "name": "Swiss Franc", "symbol": "CHF", "rateToUsd": 1.1560, "usdToRate": 0.8651 },
     { "code": "INR", "name": "Indian Rupee", "symbol": "₹", "rateToUsd": 0.0105, "usdToRate": 95.16 },
-    { "code": "CNY", "name": "Chinese Yuan", "symbol": "¥", "rateToUsd": 0.1394, "usdToRate": 7.1730 }
-  ]
+    { "code": "CNY", "name": "Chinese Yuan", "symbol": "¥", "rateToUsd": 0.1391, "usdToRate": 7.1891 }
+  ],
+  "taxes": {
+    "gstPercentage": 3,
+    "customsDutyPercentage": 6,
+    "hallmarkFeeInr": 45,
+    "hallmarkGstPercentage": 18,
+    "lastUpdated": "2026-08-08"
+  }
 }
