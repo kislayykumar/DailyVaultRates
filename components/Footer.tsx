@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
-import { Vault, Database, Shield, Zap, Globe, TrendingUp } from "lucide-react";
+import { Vault, Database, Shield, Zap, Globe, TrendingUp, Heart } from "lucide-react";
+import { useState } from "react";
+import SupportDeveloperModal from "@/components/SupportDeveloperModal";
 
 export default function Footer() {
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
   return (
     <footer className="relative mt-24 text-slate-400"
       style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(2,4,9,0.98)" }}>
@@ -127,9 +132,47 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* ── Support Developer Banner ───────────────────────────────── */}
+        <div
+          className="mt-12 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 justify-between"
+          style={{
+            background: "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(217,119,6,0.04) 100%)",
+            border: "1px solid rgba(245,158,11,0.15)",
+            boxShadow: "0 0 40px rgba(245,158,11,0.05) inset",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+              style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.22)" }}
+            >
+              <Heart className="h-5 w-5 text-amber-400" fill="rgba(245,158,11,0.3)" />
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-white">Enjoying DailyVaultRates?</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                This is a free, solo-built project. A small UPI tip keeps the servers alive! ☕
+              </p>
+            </div>
+          </div>
+          <button
+            id="footer-support-btn"
+            onClick={() => setIsSupportOpen(true)}
+            className="shrink-0 flex items-center gap-2 rounded-xl px-4 py-2 text-[12px] font-bold transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
+              color: "#020409",
+              boxShadow: "0 4px 16px rgba(245,158,11,0.30)",
+            }}
+          >
+            <Heart className="h-3.5 w-3.5" fill="currentColor" />
+            Support via UPI
+          </button>
+        </div>
+
         {/* Bottom Bar */}
         <div
-          className="mt-12 border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600"
+          className="mt-8 border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600"
           style={{ borderColor: "rgba(255,255,255,0.06)" }}
         >
           <p className="text-slate-600">© {new Date().getFullYear()} DailyVaultRates. All rights reserved.</p>
@@ -142,6 +185,11 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      <SupportDeveloperModal
+        isOpen={isSupportOpen}
+        onClose={() => setIsSupportOpen(false)}
+      />
     </footer>
   );
 }

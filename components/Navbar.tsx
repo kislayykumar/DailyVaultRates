@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Vault, Calendar, TrendingUp, DollarSign, Search, Command } from "lucide-react";
+import { Vault, Calendar, TrendingUp, DollarSign, Search, Command, Heart } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrency } from "@/context/CurrencyContext";
 import StockSearchBar from "@/components/stocks/StockSearchBar";
 import StockDetailModal from "@/components/stocks/StockDetailModal";
+import SupportDeveloperModal from "@/components/SupportDeveloperModal";
 
 export default function Navbar() {
   const [selectedDate, setSelectedDate] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedStockSymbol, setSelectedStockSymbol] = useState<string | null>(null);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   const router = useRouter();
   const { currencyMode, setCurrencyMode } = useCurrency();
@@ -50,8 +52,8 @@ export default function Navbar() {
               >
                 Daily<span className="text-gold-gradient-v3">Vault</span>Rates
               </span>
-              {/* Live Badge */}
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/12 px-2 py-0.5 text-[10px] font-extrabold tracking-widest text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.20)]">
+              {/* Live Badge — hidden on mobile */}
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/12 px-2 py-0.5 text-[10px] font-extrabold tracking-widest text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.20)]">
                 <span className="live-dot" />
                 LIVE
               </span>
@@ -65,12 +67,29 @@ export default function Navbar() {
         {/* ── Controls ─────────────────────────────────────────────── */}
         <div className="flex items-center gap-2 sm:gap-2.5">
 
-          {/* Cmd-K Search */}
+          {/* Support Developer Button */}
+          <button
+            type="button"
+            id="navbar-support-btn"
+            onClick={() => setIsSupportOpen(true)}
+            className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-bold transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: "linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.08) 100%)",
+              border: "1px solid rgba(245,158,11,0.30)",
+              color: "#F59E0B",
+              boxShadow: "0 0 16px rgba(245,158,11,0.12)",
+            }}
+          >
+            <Heart className="h-3.5 w-3.5" fill="rgba(245,158,11,0.4)" style={{ animationDuration: "2s" }} />
+            <span className="hidden sm:inline">Support</span>
+          </button>
+
+          {/* Cmd-K Search — hidden on mobile */}
           <button
             type="button"
             id="navbar-search-btn"
             onClick={() => setIsSearchOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-white/7 bg-white/3 px-3 py-1.5 text-xs text-slate-400 backdrop-blur-md transition-all duration-200 hover:border-emerald-500/30 hover:text-white hover:bg-white/6 hover:shadow-[0_0_16px_rgba(16,185,129,0.12)]"
+            className="hidden sm:flex items-center gap-2 rounded-xl border border-white/7 bg-white/3 px-3 py-1.5 text-xs text-slate-400 backdrop-blur-md transition-all duration-200 hover:border-emerald-500/30 hover:text-white hover:bg-white/6 hover:shadow-[0_0_16px_rgba(16,185,129,0.12)]"
           >
             <Search className="h-3.5 w-3.5 text-emerald-400" />
             <span className="hidden md:inline font-medium">Search Markets…</span>
@@ -151,6 +170,11 @@ export default function Navbar() {
       <StockDetailModal
         symbol={selectedStockSymbol}
         onClose={() => setSelectedStockSymbol(null)}
+      />
+
+      <SupportDeveloperModal
+        isOpen={isSupportOpen}
+        onClose={() => setIsSupportOpen(false)}
       />
     </header>
   );
