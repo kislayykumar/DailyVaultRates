@@ -114,14 +114,22 @@ jobs:
           delete-branch: true
           labels: "automated, data-update"
 
-      # ── Step 7b: Auto-merge Pull Request if created ───────────────────────
-      - name: Enable Auto-Merge for PR
+      # ── Step 7b: Auto-approve PR as Code Owner ────────────────────────────
+      - name: Auto-Approve PR as Code Owner
+        if: steps.cpr.outputs.pull-request-number
+        uses: hmarr/auto-approve-action@v4
+        with:
+          github-token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+
+      # ── Step 7c: Auto-merge PR into Main ──────────────────────────────────
+      - name: Auto-Merge PR into Main
         if: steps.cpr.outputs.pull-request-number
         run: |
-          echo "🤖 Auto-merging PR #${{ steps.cpr.outputs.pull-request-number }}..."
-          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --auto --squash || gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --merge --admin || true
+          echo "🤖 Merging PR #${{ steps.cpr.outputs.pull-request-number }} into main..."
+          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --squash --delete-branch || gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --auto --squash || true
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
       # ── Step 8: Report job status summary ────────────────────────────────
       - name: Report fetch summary
