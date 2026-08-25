@@ -30,6 +30,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+
+      # ── Step 2b: Install Dependencies ────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
 
       # ── Step 3: Attempt 1 — Fetch rates ───────────────────────────────────
       - name: Fetch spot rates (attempt 1)
@@ -97,13 +102,21 @@ jobs:
             echo "ℹ️  No data changes to commit (rates unchanged)."
           else
             git commit -m "chore: daily rate update for ${TODAY} [skip ci]"
-            # Push with retry in case of transient git conflicts
+            pushed=false
             for i in 1 2 3; do
-              git push origin main && break
+              if git push origin main; then
+                pushed=true
+                echo "✅ Successfully pushed rate update commit to main."
+                break
+              fi
               echo "⚠️  Push attempt $i failed, retrying in 10s..."
               sleep 10
               git pull --rebase origin main
             done
+            if [ "$pushed" = false ]; then
+              echo "❌ ERROR: Failed to push rate updates after 3 attempts. Check repository write permissions or branch protection rules!"
+              exit 1
+            fi
           fi
 
       # ── Step 8: Report job status summary ────────────────────────────────
