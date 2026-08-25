@@ -92,16 +92,21 @@ jobs:
             console.log('   Platinum USD/oz:', d.metals.find(m=>m.id==='platinum')?.priceUsdOunce);
           "
 
+      # ── Step 6b: Set TODAY env variable ──────────────────────────────────
+      - name: Set Date Environment Variable
+        run: echo "TODAY=$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
+
       # ── Step 7: Create Pull Request for rate update ───────────────────────
       - name: Create Pull Request for daily rate update
         id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore(data): update daily vault rates [skip ci]"
-          title: "chore(data): daily rate update"
+          commit-message: "chore(data): daily rate update for ${{ env.TODAY }} [skip ci]"
+          title: "chore(data): daily rate update for ${{ env.TODAY }}"
           body: |
             ### 📊 Automated Daily Vault Rate Update
+            - **Date**: `${{ env.TODAY }}`
             - **Trigger**: `Daily Spot Rates Fetcher`
             - **Status**: Validated by `validate-data-schema.js`
           branch: "auto/daily-rate-update"
