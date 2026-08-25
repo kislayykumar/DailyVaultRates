@@ -127,8 +127,8 @@ jobs:
         if: steps.cpr.outputs.pull-request-number
         run: |
           echo "🤖 Enabling Auto-Merge for PR #${{ steps.cpr.outputs.pull-request-number }}..."
-          echo "   GitHub will wait until all status checks (CodeQL, Vercel, Security Gate) pass before merging into main."
-          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --auto --squash || gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --squash --delete-branch || true
+          echo "   GitHub will queue this PR and wait until all status checks pass before merging into main."
+          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --auto --squash
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
