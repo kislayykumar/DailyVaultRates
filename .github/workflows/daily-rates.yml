@@ -122,12 +122,13 @@ jobs:
           github-token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
 
-      # ── Step 7c: Auto-merge PR into Main ──────────────────────────────────
-      - name: Auto-Merge PR into Main
+      # ── Step 7c: Enable Auto-Merge (Waits for all CI checks to be GREEN) ─
+      - name: Enable Auto-Merge (Merges once all status checks pass)
         if: steps.cpr.outputs.pull-request-number
         run: |
-          echo "🤖 Merging PR #${{ steps.cpr.outputs.pull-request-number }} into main..."
-          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --squash --delete-branch || gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --auto --squash || true
+          echo "🤖 Enabling Auto-Merge for PR #${{ steps.cpr.outputs.pull-request-number }}..."
+          echo "   GitHub will wait until all status checks (CodeQL, Vercel, Security Gate) pass before merging into main."
+          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --auto --squash || gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --squash --delete-branch || true
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
