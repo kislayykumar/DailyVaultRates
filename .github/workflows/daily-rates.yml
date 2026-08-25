@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   fetch-and-commit:
@@ -91,33 +92,21 @@ jobs:
             console.log('   Platinum USD/oz:', d.metals.find(m=>m.id==='platinum')?.priceUsdOunce);
           "
 
-      # ── Step 7: Commit and push ───────────────────────────────────────────
-      - name: Commit and push rate data
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          TODAY=$(date -u +'%Y-%m-%d')
-          git add data/
-          if git diff --staged --quiet; then
-            echo "ℹ️  No data changes to commit (rates unchanged)."
-          else
-            git commit -m "chore: daily rate update for ${TODAY} [skip ci]"
-            pushed=false
-            for i in 1 2 3; do
-              if git push origin main; then
-                pushed=true
-                echo "✅ Successfully pushed rate update commit to main."
-                break
-              fi
-              echo "⚠️  Push attempt $i failed, retrying in 10s..."
-              sleep 10
-              git pull --rebase origin main
-            done
-            if [ "$pushed" = false ]; then
-              echo "❌ ERROR: Failed to push rate updates after 3 attempts. Check repository write permissions or branch protection rules!"
-              exit 1
-            fi
-          fi
+      # ── Step 7: Create Pull Request for rate update ───────────────────────
+      - name: Create Pull Request for daily rate update
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(data): update daily vault rates [skip ci]"
+          title: "chore(data): daily rate update"
+          body: |
+            ### 📊 Automated Daily Vault Rate Update
+            - **Trigger**: `Daily Spot Rates Fetcher`
+            - **Status**: Validated by `validate-data-schema.js`
+          branch: "auto/daily-rate-update"
+          base: "main"
+          delete-branch: true
+          labels: "automated, data-update"
 
       # ── Step 8: Report job status summary ────────────────────────────────
       - name: Report fetch summary
