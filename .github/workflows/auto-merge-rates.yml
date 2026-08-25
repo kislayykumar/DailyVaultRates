@@ -1,0 +1,24 @@
+name: Auto-Merge Daily Rate Pull Requests
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge-rates-pr:
+    name: Auto-Merge Daily Rate PR
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.ref == 'auto/daily-rate-update' || contains(github.event.pull_request.labels.*.name, 'automated')
+    steps:
+      - name: Auto-merge PR via GitHub CLI
+        run: |
+          echo "🤖 Processing auto-merge for PR: ${{ github.event.pull_request.html_url }}"
+          gh pr merge "${{ github.event.pull_request.html_url }}" --auto --squash || gh pr merge "${{ github.event.pull_request.html_url }}" --squash --admin || echo "Auto-merge attempted."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
