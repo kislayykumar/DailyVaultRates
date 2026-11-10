@@ -1,0 +1,156 @@
+{
+  "date": "2026-11-10",
+  "timestamp": 1794315999274,
+  "baseCurrency": "USD",
+  "metals": [
+    {
+      "id": "gold-24k",
+      "name": "Gold 24K (99.9% Pure)",
+      "symbol": "XAU-24K",
+      "carat": "24K",
+      "purity": "99.9%",
+      "priceUsdOunce": 4085,
+      "priceUsdGram": 131.34,
+      "priceInrGram": 14284,
+      "priceInr10Gram": 142840,
+      "priceInrKg": 14284000,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "gold-22k",
+      "name": "Gold 22K (91.6% Jewelry)",
+      "symbol": "XAU-22K",
+      "carat": "22K",
+      "purity": "91.6%",
+      "priceUsdOunce": 4336.25,
+      "priceUsdGram": 139.41,
+      "priceInrGram": 13095,
+      "priceInr10Gram": 130950,
+      "priceInrKg": 13095000,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "gold-18k",
+      "name": "Gold 18K (75.0% Jewelry)",
+      "symbol": "XAU-18K",
+      "carat": "18K",
+      "purity": "75.0%",
+      "priceUsdOunce": 3548.8,
+      "priceUsdGram": 114.1,
+      "priceInrGram": 10717,
+      "priceInr10Gram": 107170,
+      "priceInrKg": 10717000,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "silver",
+      "name": "Silver (99.9% Fine)",
+      "symbol": "XAG",
+      "carat": "999",
+      "purity": "99.9%",
+      "priceUsdOunce": 52.24,
+      "priceUsdGram": 1.6796,
+      "priceInrGram": 205,
+      "priceInr10Gram": 2050,
+      "priceInrKg": 205000,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "platinum",
+      "name": "Platinum (95.0% Pure)",
+      "symbol": "XPT",
+      "carat": "950",
+      "purity": "95.0%",
+      "priceUsdOunce": 1552.7,
+      "priceUsdGram": 49.92,
+      "priceInrGram": 4688.95,
+      "priceInr10Gram": 46889.5,
+      "priceInrKg": 4688950,
+      "unit": "Troy Ounce",
+      "category": "Precious Metals"
+    },
+    {
+      "id": "aluminum",
+      "name": "Aluminum (99.7% Pure)",
+      "symbol": "ALU",
+      "purity": "99.7%",
+      "priceUsdOunce": 0.0977,
+      "priceUsdGram": 0.003141,
+      "priceUsdTon": 3141,
+      "priceInrGram": 0.295,
+      "priceInr10Gram": 2.95,
+      "priceInrKg": 295.03,
+      "unit": "Metric Ton",
+      "category": "Industrial Metals"
+    }
+  ],
+  "currencies": [
+    {
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€",
+      "rateToUsd": 1.120512,
+      "usdToRate": 0.8924
+    },
+    {
+      "code": "GBP",
+      "name": "British Pound",
+      "symbol": "£",
+      "rateToUsd": 1.34283,
+      "usdToRate": 0.7447
+    },
+    {
+      "code": "JPY",
+      "name": "Japanese Yen",
+      "symbol": "¥",
+      "rateToUsd": 0.006328,
+      "usdToRate": 158.0235
+    },
+    {
+      "code": "CAD",
+      "name": "Canadian Dollar",
+      "symbol": "C$",
+      "rateToUsd": 0.708579,
+      "usdToRate": 1.4113
+    },
+    {
+      "code": "AUD",
+      "name": "Australian Dollar",
+      "symbol": "A$",
+      "rateToUsd": 0.690601,
+      "usdToRate": 1.448
+    },
+    {
+      "code": "CHF",
+      "name": "Swiss Franc",
+      "symbol": "CHF",
+      "rateToUsd": 1.220033,
+      "usdToRate": 0.8196
+    },
+    {
+      "code": "INR",
+      "name": "Indian Rupee",
+      "symbol": "₹",
+      "rateToUsd": 0.010646,
+      "usdToRate": 93.9292
+    },
+    {
+      "code": "CNY",
+      "name": "Chinese Yuan",
+      "symbol": "¥",
+      "rateToUsd": 0.149553,
+      "usdToRate": 6.6866
+    }
+  ],
+  "taxes": {
+    "gstPercentage": 3,
+    "customsDutyPercentage": 6,
+    "hallmarkFeeInr": 45,
+    "hallmarkGstPercentage": 18,
+    "lastUpdated": "2026-11-10"
+  }
+}
