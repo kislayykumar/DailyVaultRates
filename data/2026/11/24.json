@@ -1,6 +1,6 @@
 {
   "date": "2026-11-24",
-  "timestamp": 1795552345798,
+  "timestamp": 1795557974361,
   "baseCurrency": "USD",
   "metals": [
     {
@@ -9,8 +9,8 @@
       "symbol": "XAU-24K",
       "carat": "24K",
       "purity": "99.9%",
-      "priceUsdOunce": 3555.5,
-      "priceUsdGram": 114.31,
+      "priceUsdOunce": 3553.6,
+      "priceUsdGram": 114.25,
       "priceInrGram": 12790,
       "priceInr10Gram": 127900,
       "priceInrKg": 12790000,
@@ -51,8 +51,8 @@
       "symbol": "XAG",
       "carat": "999",
       "purity": "99.9%",
-      "priceUsdOunce": 40.68,
-      "priceUsdGram": 1.3079,
+      "priceUsdOunce": 40.69,
+      "priceUsdGram": 1.3082,
       "priceInrGram": 175,
       "priceInr10Gram": 1750,
       "priceInrKg": 175000,
